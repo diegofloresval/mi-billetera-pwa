@@ -1,4 +1,5 @@
 node_modules/
+screen_*.png
 .env
 .env.local
 .DS_Store

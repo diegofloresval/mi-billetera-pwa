@@ -10,6 +10,13 @@ const uid = () => Math.random().toString(36).slice(2, 9);
 const fmt = (n) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n || 0);
 const today = () => new Date().toISOString().slice(0, 10);
 const currentMonth = () => new Date().toISOString().slice(0, 7);
+const saludo = () => {
+  const h = new Date().getHours();
+  if (h < 6) return "Buenas noches";
+  if (h < 13) return "Buenos días";
+  if (h < 20) return "Buenas tardes";
+  return "Buenas noches";
+};
 
 // ── constants ──────────────────────────────────────────────────────────────────
 const CATS = [
@@ -249,7 +256,9 @@ export default function App() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
         *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-        body{background:#F5F6FA;font-family:'Nunito',sans-serif;overscroll-behavior:none;}
+        html,body{background:#F5F6FA;font-family:'Nunito',sans-serif;overscroll-behavior:none;touch-action:pan-y;-webkit-text-size-adjust:100%;}
+        html{height:100%;}
+        body{min-height:100%;}
         ::-webkit-scrollbar{display:none;}
         input,select,button{font-family:'Nunito',sans-serif;outline:none;}
         .slide-up{animation:slideUp 0.38s cubic-bezier(.34,1.2,.64,1) both;}
@@ -264,12 +273,12 @@ export default function App() {
         .safe-bot{padding-bottom:calc(env(safe-area-inset-bottom) + 16px);}
       `}</style>
 
-      <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100dvh", background: "#F5F6FA", position: "relative" }}>
+      <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100dvh", background: "#F5F6FA", position: "relative", touchAction: "pan-y" }}>
 
         {/* TOP BAR */}
         <div style={{ background: "#fff", padding: "calc(env(safe-area-inset-top) + 16px) 20px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 1px 0 rgba(0,0,0,.06)", position: "sticky", top: 0, zIndex: 50 }}>
           <div>
-            <p style={{ fontSize: 13, color: "#999", fontWeight: 500 }}>Buenos días 👋</p>
+            <p style={{ fontSize: 13, color: "#999", fontWeight: 500 }}>{saludo()} 👋</p>
             <p style={{ fontSize: 20, fontWeight: 800, color: "#1A1D2E" }}>Mi Billetera</p>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
@@ -291,7 +300,7 @@ export default function App() {
           </div>
         )}
 
-        <div style={{ padding: "0 16px 110px", overflowY: "auto", maxHeight: "calc(100dvh - 68px)" }}>
+        <div style={{ padding: "0 16px calc(env(safe-area-inset-bottom) + 110px)" }}>
 
           {/* ─── HOME ─── */}
           {tab === "Home" && (
