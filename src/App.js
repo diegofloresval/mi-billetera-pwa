@@ -267,7 +267,7 @@ export default function App() {
       <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100dvh", background: "#F5F6FA", position: "relative" }}>
 
         {/* TOP BAR */}
-        <div className="safe-top" style={{ background: "#fff", padding: "16px 20px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 1px 0 rgba(0,0,0,.06)", position: "sticky", top: 0, zIndex: 50 }}>
+        <div style={{ background: "#fff", padding: "calc(env(safe-area-inset-top) + 16px) 20px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 1px 0 rgba(0,0,0,.06)", position: "sticky", top: 0, zIndex: 50 }}>
           <div>
             <p style={{ fontSize: 13, color: "#999", fontWeight: 500 }}>Buenos días 👋</p>
             <p style={{ fontSize: 20, fontWeight: 800, color: "#1A1D2E" }}>Mi Billetera</p>
@@ -486,7 +486,7 @@ export default function App() {
         </div>
 
         {/* FAB */}
-        <button onClick={() => openModal("gasto")} style={{ position: "fixed", bottom: 76, right: "calc(50% - 215px + 16px)", width: 52, height: 52, borderRadius: 16, border: "none", background: "linear-gradient(135deg,#E8854A,#E91E8C)", color: "#fff", fontSize: 24, cursor: "pointer", boxShadow: "0 6px 20px rgba(232,133,74,.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 101 }}>+</button>
+        <button onClick={() => openModal("gasto")} style={{ position: "fixed", bottom: "calc(env(safe-area-inset-bottom) + 88px)", right: "max(16px, calc(50% - 215px + 16px))", width: 52, height: 52, borderRadius: 16, border: "none", background: "linear-gradient(135deg,#E8854A,#E91E8C)", color: "#fff", fontSize: 24, cursor: "pointer", boxShadow: "0 6px 20px rgba(232,133,74,.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 101 }}>+</button>
 
         {/* MODAL GASTO/INGRESO/SUELDO */}
         {showModal && (
