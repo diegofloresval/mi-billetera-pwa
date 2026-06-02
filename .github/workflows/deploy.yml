@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: CI=false npm run build
       - name: Add SPA 404 fallback
         run: cp build/index.html build/404.html
