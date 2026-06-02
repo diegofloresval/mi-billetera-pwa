@@ -21,5 +21,5 @@
   "orientation": "portrait",
   "theme_color": "#1A1D2E",
   "background_color": "#F5F6FA",
-  "scope": "/"
+  "scope": "./"
 }

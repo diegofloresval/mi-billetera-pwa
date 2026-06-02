@@ -1,5 +1,6 @@
 const CACHE = "billetera-v2";
-const ASSETS = ["/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png"];
+const SCOPE = self.registration ? self.registration.scope : "/";
+const ASSETS = [SCOPE, SCOPE + "index.html", SCOPE + "manifest.json", SCOPE + "icon-192.png", SCOPE + "icon-512.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS).catch(() => {})));
@@ -20,6 +21,6 @@ self.addEventListener("fetch", (e) => {
         caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
         return res;
       })
-      .catch(() => caches.match(e.request).then((cached) => cached || caches.match("/index.html")))
+      .catch(() => caches.match(e.request).then((cached) => cached || caches.match(SCOPE + "index.html")))
   );
 });
