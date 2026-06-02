@@ -2,6 +2,7 @@
   "name": "mi-billetera-pwa",
   "version": "0.1.1",
   "private": true,
+  "homepage": "https://diegofloresval.github.io/mi-billetera-pwa",
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
