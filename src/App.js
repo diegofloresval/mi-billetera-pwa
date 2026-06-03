@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
 // ── storage ────────────────────────────────────────────────────────────────────
 const STORE_KEY = "billetera_data_v1";
-const saveData = (data) => { try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch(e){} };
+const saveData = (data) => { try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); return true; } catch(e){ return false; } };
 const loadData = () => { try { const d = localStorage.getItem(STORE_KEY); return d ? JSON.parse(d) : null; } catch(e){ return null; } };
 
 // ── helpers ────────────────────────────────────────────────────────────────────
@@ -10,6 +10,7 @@ const uid = () => Math.random().toString(36).slice(2, 9);
 const fmt = (n) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n || 0);
 const today = () => new Date().toISOString().slice(0, 10);
 const currentMonth = () => new Date().toISOString().slice(0, 7);
+const monthOf = (fecha) => typeof fecha === "string" ? fecha.slice(0, 7) : null;
 const saludo = () => {
   const h = new Date().getHours();
   if (h < 6) return "Buenas noches";
@@ -85,18 +86,22 @@ const INITIAL_STATE = {
 };
 
 // ── logic ──────────────────────────────────────────────────────────────────────
-const fijoActivoEsteMes = (f) => {
+const fijoActivoEsteMes = (f, ym = currentMonth()) => {
   if (!f.activo) return false;
   if (f.tipo === "cuotas") {
     if ((f.cuotasTotales - f.cuotasPagadas) <= 0) return false;
-    if (f.desde && currentMonth() < f.desde) return false;
+    if (f.desde) {
+      if (ym < f.desde) return false;
+      const hasta = addMonth(f.desde, f.cuotasTotales - 1);
+      if (ym > hasta) return false;
+    }
     return true;
   }
   if (!f.hastaFecha) return true;
-  return currentMonth() <= f.hastaFecha;
+  return ym <= f.hastaFecha;
 };
 
-const isInMonth = (fecha, ym) => typeof fecha === "string" && fecha.slice(0, 7) === ym;
+const isInMonth = (fecha, ym) => monthOf(fecha) === ym;
 
 const cuotaLabel = (f) => {
   const rest = f.cuotasTotales - f.cuotasPagadas;
@@ -104,19 +109,64 @@ const cuotaLabel = (f) => {
 };
 
 // ── components ─────────────────────────────────────────────────────────────────
+function Icon({ name, size = 22, filled = false, weight = 500, color, style }) {
+  return (
+    <span
+      className="material-symbols-outlined"
+      style={{
+        fontSize: size,
+        lineHeight: 1,
+        color,
+        fontVariationSettings: `'FILL' ${filled ? 1 : 0}, 'wght' ${weight}, 'GRAD' 0, 'opsz' 24`,
+        userSelect: "none",
+        ...style,
+      }}
+    >
+      {name}
+    </span>
+  );
+}
+
 function AnimNumber({ value, style }) {
   const [disp, setDisp] = useState(value);
-  const prev = useRef(value);
+  const dispRef = useRef(value);
+  const rafRef = useRef(null);
   useEffect(() => {
-    const s = prev.current, e = value, dur = 700, t0 = performance.now();
+    const s = dispRef.current, e = value, dur = 700, t0 = performance.now();
     const step = (now) => {
       const t = Math.min((now - t0) / dur, 1);
-      setDisp(Math.round(s + (e - s) * (1 - Math.pow(1 - t, 4))));
-      if (t < 1) requestAnimationFrame(step); else prev.current = e;
+      const next = Math.round(s + (e - s) * (1 - Math.pow(1 - t, 4)));
+      dispRef.current = next;
+      setDisp(next);
+      if (t < 1) rafRef.current = requestAnimationFrame(step);
+      else rafRef.current = null;
     };
-    requestAnimationFrame(step);
+    rafRef.current = requestAnimationFrame(step);
+    return () => { if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; } };
   }, [value]);
   return <span style={style}>{fmt(disp)}</span>;
+}
+
+function BudgetInput({ initial, color, onSave, onCancel }) {
+  const [val, setVal] = useState(String(initial ?? ""));
+  const save = () => onSave(Number(val) || 0);
+  return (
+    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+      <input
+        type="number"
+        inputMode="numeric"
+        value={val}
+        autoFocus
+        onChange={(e) => setVal(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter") save(); else if (e.key === "Escape") onCancel(); }}
+        style={{ flex: 1, minWidth: 0, border: `1.5px solid ${color}`, borderRadius: 12, padding: "8px 12px", fontSize: 13, fontWeight: 700, color: C.ink, background: C.bg, fontFamily: "inherit" }}
+      />
+      <button
+        onClick={save}
+        style={{ border: "none", background: color, color: "#fff", borderRadius: 12, padding: "8px 12px", fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}
+      >✓</button>
+    </div>
+  );
 }
 
 function Bar({ spent, budget, color }) {
@@ -134,35 +184,67 @@ function FijoCard({ f, onEdit, onDel, onToggle, onPagar }) {
   const rest = f.tipo === "cuotas" ? f.cuotasTotales - f.cuotasPagadas : null;
   const pctCuota = f.tipo === "cuotas" ? Math.round((f.cuotasPagadas / f.cuotasTotales) * 100) : null;
   const dim = !fijoActivoEsteMes(f);
+  if (dim) {
+    return (
+      <div style={{ borderRadius: 24, padding: "16px 18px", border: `1.5px dashed ${C.lavanda}66`, marginBottom: 12, background: "transparent" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#EEE9F2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0, filter: "grayscale(0.6)", opacity: 0.7 }}>{cat.emoji}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontWeight: 800, fontSize: 15, color: C.ink2 }}>{f.desc}</p>
+            <p style={{ fontSize: 10, color: C.ink2, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2 }}>
+              {f.tipo === "cuotas" && rest <= 0 ? "Plan completado" : !f.activo ? "Pausado" : "Inactivo este mes"}
+            </p>
+          </div>
+          <p style={{ fontWeight: 900, fontSize: 15, color: C.ink2, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>-{fmt(f.monto)}</p>
+        </div>
+        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+          {!f.activo && (
+            <button onClick={onToggle} style={{ flex: 1, padding: "10px 0", borderRadius: 99, border: "none", background: `${C.lavanda}1F`, color: "#6B46C1", fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>▶ Reactivar gasto</button>
+          )}
+          <button aria-label="Eliminar" onClick={onDel} style={{ width: 42, height: 38, borderRadius: 99, border: "none", background: `${C.coral}33`, color: "#D4587E", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>delete</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
   return (
-    <div style={{ background: dim ? "#FFFBF5" : C.card, borderRadius: 24, padding: "18px 18px", opacity: dim ? 0.7 : 1, border: dim ? `1.5px dashed ${C.lavandaSoft}` : "none", marginBottom: 12, boxShadow: dim ? "none" : "0 4px 20px rgba(167,139,250,0.08)" }}>
+    <div style={{ background: C.card, borderRadius: 26, padding: "18px 18px", marginBottom: 14, boxShadow: `0 6px 22px ${C.lavanda}14` }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-        <div style={{ width: 48, height: 48, borderRadius: 16, background: `${cat.color}22`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>{cat.emoji}</div>
+        <div style={{ width: 52, height: 52, borderRadius: "50%", background: `${cat.color}26`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>{cat.emoji}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontWeight: 800, fontSize: 15, color: C.ink }}>{f.desc}</p>
-          <div style={{ display: "flex", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 10, background: f.tipo === "cuotas" ? C.coralSoft : C.celesteSoft, color: f.tipo === "cuotas" ? "#D4587E" : "#4A90D9", borderRadius: 99, padding: "3px 9px", fontWeight: 700 }}>
+          <p style={{ fontWeight: 800, fontSize: 16, color: C.ink }}>{f.desc}</p>
+          <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 10, background: f.tipo === "cuotas" ? `${C.coral}33` : `${C.celeste}66`, color: f.tipo === "cuotas" ? "#D4587E" : "#1A6BA0", borderRadius: 99, padding: "3px 9px", fontWeight: 900, textTransform: "uppercase", letterSpacing: 0.3 }}>
               {f.tipo === "cuotas" ? `⏳ ${cuotaLabel(f)}` : f.hastaFecha ? `🔄 hasta ${f.hastaFecha}` : "🔄 Mensual"}
             </span>
-            <span style={{ fontSize: 10, background: C.lavandaSoft, color: "#6B46C1", borderRadius: 99, padding: "3px 9px", fontWeight: 700 }}>{mth.icon} {mth.label}</span>
+            <span style={{ fontSize: 10, background: `${C.creme}99`, color: C.ink, borderRadius: 99, padding: "3px 9px", fontWeight: 800 }}>{mth.icon} {mth.label}</span>
           </div>
           {f.tipo === "cuotas" && (
-            <div style={{ marginTop: 8, height: 5, borderRadius: 99, background: C.coralSoft, overflow: "hidden" }}>
+            <div style={{ marginTop: 10, height: 6, borderRadius: 99, background: `${C.coral}26`, overflow: "hidden" }}>
               <div style={{ height: "100%", width: `${pctCuota}%`, background: C.coral, borderRadius: 99, transition: "width .5s" }} />
             </div>
           )}
         </div>
-        <div style={{ textAlign: "right", flexShrink: 0 }}>
-          <p style={{ fontWeight: 900, fontSize: 17, color: "#D4587E", fontVariantNumeric: "tabular-nums" }}>-{fmt(f.monto)}</p>
-        </div>
+        <p style={{ fontWeight: 900, fontSize: 17, color: "#D4587E", fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>-{fmt(f.monto)}</p>
       </div>
-      <div style={{ display: "flex", gap: 8, marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.lavandaSoft}` }}>
+      <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.lavanda}1A`, display: "flex", flexDirection: "column", gap: 8 }}>
         {f.tipo === "cuotas" && rest > 0 && (
-          <button onClick={onPagar} style={{ flex: 1, padding: "8px 0", borderRadius: 99, border: "none", background: C.mentaSoft, color: "#1F8C5B", fontWeight: 800, fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>✓ Pagar cuota</button>
+          <button onClick={onPagar} style={{ width: "100%", padding: "11px 0", borderRadius: 99, border: "none", background: `${C.menta}40`, color: "#057857", fontWeight: 900, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check_circle</span> Pagar cuota
+          </button>
         )}
-        <button onClick={onEdit} style={{ flex: 1, padding: "8px 0", borderRadius: 99, border: "none", background: C.lavandaSoft, color: "#6B46C1", fontWeight: 800, fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>✏️ Editar</button>
-        <button onClick={onToggle} style={{ flex: 1, padding: "8px 0", borderRadius: 99, border: "none", background: f.activo ? C.cremeSoft : C.mentaSoft, color: f.activo ? "#B8860B" : "#1F8C5B", fontWeight: 800, fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>{f.activo ? "⏸ Pausar" : "▶ Activar"}</button>
-        <button onClick={onDel} style={{ width: 38, padding: "8px 0", borderRadius: 99, border: "none", background: C.coralSoft, color: "#D4587E", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>🗑️</button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={onEdit} style={{ flex: 1, padding: "10px 0", borderRadius: 99, border: "none", background: `${C.lavanda}1A`, color: "#6B46C1", fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span> Editar
+          </button>
+          <button onClick={onToggle} style={{ flex: 1, padding: "10px 0", borderRadius: 99, border: "none", background: `${C.creme}99`, color: "#B8860B", fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>pause</span> Pausar
+          </button>
+          <button aria-label="Eliminar" onClick={onDel} style={{ width: 44, padding: "10px 0", borderRadius: 99, border: "none", background: `${C.coral}33`, color: "#D4587E", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>delete</span>
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -185,10 +267,29 @@ export default function App() {
   const [showInstall, setShowInstall] = useState(false);
   const [movMes, setMovMes] = useState(currentMonth());
   const fileInputRef = useRef(null);
+  const quotaWarnedRef = useRef(false);
 
   const { txs, fijos, budgets, sueldo, nombre } = state;
 
-  useEffect(() => { saveData(state); }, [state]);
+  const stateRef = useRef(state);
+  useEffect(() => { stateRef.current = state; }, [state]);
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      const ok = saveData(state);
+      if (!ok && !quotaWarnedRef.current) {
+        quotaWarnedRef.current = true;
+        showToast("No se pudo guardar (almacenamiento lleno)");
+      }
+    }, 400);
+    return () => clearTimeout(id);
+  }, [state]);
+
+  useEffect(() => {
+    const flush = () => saveData(stateRef.current);
+    window.addEventListener("pagehide", flush);
+    return () => window.removeEventListener("pagehide", flush);
+  }, []);
 
   useEffect(() => {
     const handler = (e) => { e.preventDefault(); setInstallPrompt(e); setShowInstall(true); };
@@ -198,22 +299,31 @@ export default function App() {
 
   const upd = useCallback((patch) => setState((s) => ({ ...s, ...patch })), []);
 
-  // totals del mes actual
   const cm = currentMonth();
-  const gastosMes = txs.filter((t) => t.type === "gasto" && isInMonth(t.fecha, cm));
-  const ingresosMes = txs.filter((t) => t.type === "ingreso" && isInMonth(t.fecha, cm));
-  const totalFijos = fijos.filter(fijoActivoEsteMes).reduce((a, f) => a + f.monto, 0);
+  const gastosMes = useMemo(() => txs.filter((t) => t.type === "gasto" && isInMonth(t.fecha, cm)), [txs, cm]);
+  const ingresosMes = useMemo(() => txs.filter((t) => t.type === "ingreso" && isInMonth(t.fecha, cm)), [txs, cm]);
+  const totalFijos = useMemo(() => fijos.filter((f) => fijoActivoEsteMes(f, cm)).reduce((a, f) => a + f.monto, 0), [fijos, cm]);
   const totalGastos = gastosMes.reduce((a, t) => a + t.monto, 0) + totalFijos;
   const totalIngresos = ingresosMes.reduce((a, t) => a + t.monto, 0) + sueldo;
   const balance = totalIngresos - totalGastos;
 
-  const spentByCat = (cat) =>
-    gastosMes.filter((g) => g.cat === cat).reduce((a, g) => a + g.monto, 0) +
-    fijos.filter((f) => f.cat === cat && fijoActivoEsteMes(f)).reduce((a, f) => a + f.monto, 0);
+  const spentByCatMap = useMemo(() => {
+    const m = {};
+    for (const g of gastosMes) m[g.cat] = (m[g.cat] || 0) + g.monto;
+    for (const f of fijos) if (fijoActivoEsteMes(f, cm)) m[f.cat] = (m[f.cat] || 0) + f.monto;
+    return m;
+  }, [gastosMes, fijos, cm]);
 
-  const top5 = [...CATS].map((c) => ({ ...c, total: spentByCat(c.id) })).filter((c) => c.total > 0).sort((a, b) => b.total - a.total).slice(0, 5);
+  const spentByCat = useCallback((cat) => spentByCatMap[cat] || 0, [spentByCatMap]);
 
-  // toast con undo opcional
+  const top5 = useMemo(
+    () => CATS.map((c) => ({ ...c, total: spentByCatMap[c.id] || 0 }))
+              .filter((c) => c.total > 0)
+              .sort((a, b) => b.total - a.total)
+              .slice(0, 5),
+    [spentByCatMap]
+  );
+
   const toastTimer = useRef(null);
   const showToast = (msg, undoFn = null) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -221,12 +331,11 @@ export default function App() {
     toastTimer.current = setTimeout(() => setToast(null), undoFn ? 4500 : 2200);
   };
 
-  // meses con movimientos para selector
-  const mesesDisponibles = (() => {
-    const set = new Set(txs.map((t) => t.fecha?.slice(0, 7)).filter(Boolean));
+  const mesesDisponibles = useMemo(() => {
+    const set = new Set(txs.map((t) => monthOf(t.fecha)).filter(Boolean));
     set.add(cm);
     return [...set].sort().reverse();
-  })();
+  }, [txs, cm]);
 
   const openModal = (type) => {
     setModalType(type); setEditId(null);
@@ -244,11 +353,15 @@ export default function App() {
     setShowModal(false);
   };
 
-  const del = (id) => {
-    const removed = txs.find((x) => x.id === id);
-    upd({ txs: txs.filter((x) => x.id !== id) });
-    showToast("Movimiento eliminado", () => upd({ txs: [removed, ...txs.filter((x) => x.id !== id)] }));
+  const removeWithUndo = (key, id, label) => {
+    const removed = state[key].find((x) => x.id === id);
+    if (!removed) return;
+    setState((s) => ({ ...s, [key]: s[key].filter((x) => x.id !== id) }));
+    showToast(label, () =>
+      setState((s) => s[key].some((x) => x.id === id) ? s : { ...s, [key]: [removed, ...s[key]] })
+    );
   };
+  const del = (id) => removeWithUndo("txs", id, "Movimiento eliminado");
 
   const startEdit = (tx) => {
     setEditId(tx.id); setModalType(tx.type === "ingreso" ? "ingreso" : "gasto");
@@ -275,17 +388,19 @@ export default function App() {
     setShowFijoModal(false);
   };
 
-  const delFijo = (id) => {
-    const removed = fijos.find((x) => x.id === id);
-    upd({ fijos: fijos.filter((x) => x.id !== id) });
-    showToast("Gasto fijo eliminado", () => upd({ fijos: [removed, ...fijos.filter((x) => x.id !== id)] }));
-  };
+  const delFijo = (id) => removeWithUndo("fijos", id, "Gasto fijo eliminado");
   const toggleFijo = (id) => upd({ fijos: fijos.map((x) => x.id === id ? { ...x, activo: !x.activo } : x) });
-  const pagarCuota = (id) => { upd({ fijos: fijos.map((x) => x.id === id ? { ...x, cuotasPagadas: Math.min(x.cuotasPagadas + 1, x.cuotasTotales) } : x) }); showToast("Cuota registrada ✓"); };
+  const pagarCuota = (id) => {
+    const f = fijos.find((x) => x.id === id);
+    if (!f) return;
+    const completa = f.cuotasPagadas + 1 >= f.cuotasTotales;
+    upd({ fijos: fijos.map((x) => x.id === id ? { ...x, cuotasPagadas: Math.min(x.cuotasPagadas + 1, x.cuotasTotales) } : x) });
+    showToast(completa ? "Última cuota ✓ Plan completado" : "Cuota registrada ✓");
+  };
 
   const mthInfo = (id) => METHODS.find((m) => m.id === id) || METHODS[0];
-  const activosFijos = fijos.filter(fijoActivoEsteMes);
-  const inactivosFijos = fijos.filter((f) => !fijoActivoEsteMes(f));
+  const activosFijos = useMemo(() => fijos.filter((f) => fijoActivoEsteMes(f, cm)), [fijos, cm]);
+  const inactivosFijos = fijos.filter((f) => !fijoActivoEsteMes(f, cm));
 
   // export/import
   const exportar = () => {
@@ -297,12 +412,21 @@ export default function App() {
     showToast("Datos exportados ✓");
   };
   const importar = (file) => {
+    if (!window.confirm("¿Reemplazar tus datos actuales con los del archivo? Esta acción no se puede deshacer.")) return;
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
         const data = JSON.parse(e.target.result);
         if (!data || typeof data !== "object") throw new Error("invalid");
-        setState({ ...INITIAL_STATE, ...data });
+        setState({
+          ...INITIAL_STATE,
+          ...data,
+          txs: Array.isArray(data.txs) ? data.txs : [],
+          fijos: Array.isArray(data.fijos) ? data.fijos : [],
+          budgets: data.budgets && typeof data.budgets === "object" ? data.budgets : INITIAL_STATE.budgets,
+          sueldo: Number.isFinite(data.sueldo) ? data.sueldo : 0,
+          nombre: typeof data.nombre === "string" ? data.nombre : INITIAL_STATE.nombre,
+        });
         showToast("Datos importados ✓");
       } catch { showToast("Archivo inválido"); }
     };
@@ -343,6 +467,7 @@ export default function App() {
         body{min-height:100%;}
         ::-webkit-scrollbar{display:none;}
         input,select,button{font-family:'Plus Jakarta Sans',sans-serif;outline:none;}
+        .material-symbols-outlined{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;display:inline-block;line-height:1;text-transform:none;letter-spacing:normal;word-wrap:normal;white-space:nowrap;direction:ltr;-webkit-font-feature-settings:'liga';-webkit-font-smoothing:antialiased;}
         .slide-up{animation:slideUp 0.4s cubic-bezier(.34,1.5,.64,1) both;}
         .fade-in{animation:fadeIn 0.32s ease both;}
         @keyframes slideUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:none}}
@@ -356,15 +481,47 @@ export default function App() {
       <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100dvh", background: C.bg, position: "relative", touchAction: "pan-y" }}>
 
         {/* TOP BAR */}
-        <div style={{ background: C.card, padding: "calc(env(safe-area-inset-top) + 18px) 20px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: `0 1px 0 ${C.lavandaSoft}`, position: "sticky", top: 0, zIndex: 50 }}>
-          <div>
-            <p style={{ fontSize: 13, color: C.ink2, fontWeight: 500 }}>{saludo()} 👋</p>
-            <p style={{ fontSize: 22, fontWeight: 800, color: C.ink, marginTop: 2 }}>{nombre ? `¡Hola, ${nombre}!` : "Mi Billetera"}</p>
+        <div style={{ background: C.bg, padding: "calc(env(safe-area-inset-top) + 18px) 22px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, position: "sticky", top: 0, zIndex: 50 }}>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <p style={{ fontSize: 22, fontWeight: 800, color: C.ink, letterSpacing: -0.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {tab === "Home" ? (nombre ? `¡Hola, ${nombre}! 👋` : "¡Hola! 👋")
+                : tab === "Movimientos" ? "Movimientos"
+                : tab === "Fijos" ? "📌 Gastos fijos"
+                : tab === "Presupuesto" ? "Presupuesto"
+                : "⚙️ Ajustes"}
+            </p>
+            {tab === "Home" && (
+              <p style={{ fontSize: 13, color: C.ink2, fontWeight: 500, marginTop: 2 }}>
+                {saludo()} · {new Date().toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })}
+              </p>
+            )}
+            {tab === "Presupuesto" && <p style={{ fontSize: 13, color: C.ink2, marginTop: 2, fontWeight: 600 }}>{monthLabel(cm)}</p>}
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button className="btn-pill" onClick={() => openModal("ingreso")} style={{ width: 40, height: 40, borderRadius: 14, border: "none", background: C.mentaSoft, color: "#1F8C5B", fontSize: 20, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900 }}>+</button>
-            <button className="btn-pill" onClick={() => openModal("sueldo")}  style={{ width: 40, height: 40, borderRadius: 14, border: "none", background: C.cremeSoft, color: "#B8860B", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>💼</button>
-          </div>
+          {tab === "Home" && (
+            <div style={{ display: "flex", gap: 10, flexShrink: 0 }}>
+              <button aria-label="Agregar ingreso" className="btn-pill" onClick={() => openModal("ingreso")} style={{ width: 42, height: 42, borderRadius: "50%", border: "none", background: C.lavanda, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 16px ${C.lavanda}55` }}>
+                <Icon name="add" size={22} weight={700} />
+              </button>
+              <button aria-label="Mi sueldo" className="btn-pill" onClick={() => openModal("sueldo")} style={{ width: 42, height: 42, borderRadius: "50%", border: "none", background: C.creme, color: C.ink, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 16px ${C.creme}88` }}>
+                <Icon name="work" size={20} weight={600} />
+              </button>
+            </div>
+          )}
+          {tab === "Movimientos" && (
+            <div style={{ display: "flex", gap: 10, flexShrink: 0, alignItems: "center" }}>
+              <button aria-label="Buscar" className="btn-pill" style={{ width: 42, height: 42, borderRadius: "50%", border: "none", background: C.lavanda, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 16px ${C.lavanda}55` }}>
+                <Icon name="search" size={22} weight={600} />
+              </button>
+              <div aria-hidden="true" style={{ width: 42, height: 42, borderRadius: "50%", background: C.lavandaSoft, border: `2px solid ${C.lavanda}`, display: "flex", alignItems: "center", justifyContent: "center", color: "#6B46C1", fontWeight: 900, fontSize: 16 }}>
+                {(nombre || "D").trim().charAt(0).toUpperCase()}
+              </div>
+            </div>
+          )}
+          {tab === "Fijos" && (
+            <button className="btn-pill" onClick={() => openFijoModal()} style={{ flexShrink: 0, padding: "11px 18px", borderRadius: 99, border: "none", background: C.lavanda, color: "#fff", fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6, boxShadow: `0 6px 18px ${C.lavanda}55` }}>
+              <Icon name="add" size={18} weight={700} /> Agregar
+            </button>
+          )}
         </div>
 
         {/* INSTALL BANNER */}
@@ -386,28 +543,46 @@ export default function App() {
           {tab === "Home" && (
             <div className="fade-in">
               {/* Balance card */}
-              <div style={{ background: C.card, borderRadius: 28, padding: "22px 22px", marginTop: 16, position: "relative", overflow: "hidden", boxShadow: `0 10px 32px ${C.lavanda}1F` }}>
-                <div style={{ position: "absolute", top: -20, right: -20, width: 110, height: 110, borderRadius: "50%", background: C.lavandaSoft, opacity: 0.6 }} />
-                <div style={{ position: "absolute", bottom: -30, left: -10, width: 80, height: 80, borderRadius: "50%", background: C.mentaSoft, opacity: 0.5 }} />
-                <p style={{ color: C.ink2, fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase", fontWeight: 700, position: "relative" }}>Balance del mes</p>
-                <AnimNumber value={balance} style={{ display: "block", fontSize: 38, fontWeight: 900, color: C.ink, marginTop: 6, letterSpacing: -1, fontVariantNumeric: "tabular-nums", position: "relative" }} />
-                <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap", position: "relative" }}>
-                  <span style={{ background: C.mentaSoft, color: "#1F8C5B", borderRadius: 99, padding: "4px 12px", fontSize: 11, fontWeight: 800 }}>🟢 Sueldo {fmt(sueldo)}</span>
-                  <span style={{ background: C.coralSoft, color: "#D4587E", borderRadius: 99, padding: "4px 12px", fontSize: 11, fontWeight: 800 }}>🔴 Fijos {fmt(totalFijos)}</span>
+              <div style={{ background: C.card, borderRadius: 28, padding: "22px 22px", marginTop: 16, position: "relative", overflow: "hidden", boxShadow: `0 10px 32px ${C.lavanda}26` }}>
+                <div style={{ position: "relative", zIndex: 2 }}>
+                  <p style={{ color: C.ink2, fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase", fontWeight: 800 }}>Balance del mes</p>
+                  <AnimNumber value={balance} style={{ display: "block", fontSize: 40, fontWeight: 900, color: C.ink, marginTop: 6, letterSpacing: -1, fontVariantNumeric: "tabular-nums" }} />
+                  <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: `${C.menta}33`, color: C.ink, borderRadius: 99, padding: "5px 12px", fontSize: 11, fontWeight: 800, border: `1px solid ${C.menta}55` }}>
+                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#34D399" }} /> Sueldo {fmt(sueldo)}
+                    </span>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: `${C.coral}33`, color: C.ink, borderRadius: 99, padding: "5px 12px", fontSize: 11, fontWeight: 800, border: `1px solid ${C.coral}55` }}>
+                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#F87171" }} /> Fijos {fmt(totalFijos)}
+                    </span>
+                  </div>
+                </div>
+                <div style={{ position: "absolute", right: -8, bottom: -16, opacity: 0.18, pointerEvents: "none", zIndex: 1 }}>
+                  <Icon name="eco" size={120} filled weight={400} color={C.lavanda} />
+                </div>
+                <div style={{ position: "absolute", right: 28, top: 22, opacity: 0.25, pointerEvents: "none", transform: "rotate(12deg)", zIndex: 1 }}>
+                  <Icon name="star" size={32} filled color={C.creme} />
                 </div>
               </div>
 
               {/* Income/Expenses */}
-              <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-                <div style={{ flex: 1, background: C.mentaSoft, borderRadius: 20, padding: "14px 16px" }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 10, background: C.menta, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 900 }}>↑</div>
-                  <p style={{ color: "#1F8C5B", fontSize: 11, fontWeight: 700, marginTop: 8 }}>Ingresos</p>
-                  <p style={{ color: C.ink, fontWeight: 900, fontSize: 16, fontVariantNumeric: "tabular-nums" }}>{fmt(totalIngresos)}</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 14 }}>
+                <div style={{ background: C.menta, borderRadius: 24, padding: "18px 18px", display: "flex", flexDirection: "column", gap: 12, boxShadow: `0 8px 22px ${C.menta}55` }}>
+                  <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(255,255,255,.35)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+                    <Icon name="north_east" size={20} weight={700} />
+                  </div>
+                  <div>
+                    <p style={{ color: "rgba(45,36,56,.6)", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5 }}>Ingresos</p>
+                    <p style={{ color: C.ink, fontWeight: 900, fontSize: 17, fontVariantNumeric: "tabular-nums", marginTop: 2 }}>{fmt(totalIngresos)}</p>
+                  </div>
                 </div>
-                <div style={{ flex: 1, background: C.coralSoft, borderRadius: 20, padding: "14px 16px" }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 10, background: C.coral, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 900 }}>↓</div>
-                  <p style={{ color: "#D4587E", fontSize: 11, fontWeight: 700, marginTop: 8 }}>Gastos</p>
-                  <p style={{ color: C.ink, fontWeight: 900, fontSize: 16, fontVariantNumeric: "tabular-nums" }}>{fmt(totalGastos)}</p>
+                <div style={{ background: C.coral, borderRadius: 24, padding: "18px 18px", display: "flex", flexDirection: "column", gap: 12, boxShadow: `0 8px 22px ${C.coral}55` }}>
+                  <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(255,255,255,.35)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+                    <Icon name="south_west" size={20} weight={700} />
+                  </div>
+                  <div>
+                    <p style={{ color: "rgba(45,36,56,.6)", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5 }}>Gastos</p>
+                    <p style={{ color: C.ink, fontWeight: 900, fontSize: 17, fontVariantNumeric: "tabular-nums", marginTop: 2 }}>{fmt(totalGastos)}</p>
+                  </div>
                 </div>
               </div>
 
@@ -421,11 +596,11 @@ export default function App() {
                   {activosFijos.slice(0, 3).map((f) => {
                     const cat = CAT[f.cat] || CAT["otro"];
                     return (
-                      <div key={f.id} style={{ background: C.card, borderRadius: 20, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, marginBottom: 8, boxShadow: `0 4px 16px ${C.lavanda}10` }}>
-                        <div style={{ width: 42, height: 42, borderRadius: 14, background: `${cat.color}22`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{cat.emoji}</div>
+                      <div key={f.id} style={{ background: C.card, borderRadius: 20, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, marginBottom: 10, boxShadow: `0 4px 16px ${C.lavanda}12` }}>
+                        <div style={{ width: 48, height: 48, borderRadius: "50%", background: `${cat.color}26`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>{cat.emoji}</div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <p style={{ fontWeight: 800, fontSize: 14, color: C.ink }}>{f.desc}</p>
-                          <span style={{ fontSize: 10, background: f.tipo === "cuotas" ? C.coralSoft : C.celesteSoft, color: f.tipo === "cuotas" ? "#D4587E" : "#4A90D9", borderRadius: 99, padding: "3px 9px", fontWeight: 700, marginTop: 4, display: "inline-block" }}>
+                          <span style={{ fontSize: 10, background: `${C.lavanda}1A`, color: "#6B46C1", borderRadius: 99, padding: "3px 9px", fontWeight: 900, marginTop: 4, display: "inline-block", textTransform: "uppercase", letterSpacing: 0.4 }}>
                             {f.tipo === "cuotas" ? `⏳ ${cuotaLabel(f)}` : "🔄 Mensual"}
                           </span>
                         </div>
@@ -440,18 +615,21 @@ export default function App() {
               {top5.length > 0 && (
                 <div style={{ marginTop: 22 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                    <p style={{ fontWeight: 800, fontSize: 18, color: C.ink }}>Top gastos</p>
-                    <span style={{ background: C.mentaSoft, color: "#1F8C5B", borderRadius: 99, padding: "5px 12px", fontSize: 11, fontWeight: 800 }}>Este mes</span>
+                    <p style={{ fontWeight: 800, fontSize: 20, color: C.ink }}>Top gastos 🏆</p>
                   </div>
-                  <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 6 }}>
-                    {top5.map((c, i) => (
-                      <div key={c.id} style={{ minWidth: 140, borderRadius: 22, padding: "18px 16px", background: c.color, flexShrink: 0, overflow: "hidden", boxShadow: `0 8px 22px ${c.color}44`, position: "relative" }}>
-                        <div style={{ position: "absolute", top: -14, right: -14, width: 64, height: 64, borderRadius: "50%", background: "rgba(255,255,255,.18)" }} />
-                        <div style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(255,255,255,.3)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, color: "#fff", fontSize: 13, marginBottom: 26 }}>{i + 1}</div>
-                        <p style={{ color: "rgba(255,255,255,.9)", fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{c.emoji} {c.label}</p>
-                        <p style={{ color: "#fff", fontWeight: 900, fontSize: 15, fontVariantNumeric: "tabular-nums" }}>{fmt(c.total)}</p>
-                      </div>
-                    ))}
+                  <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 6, margin: "0 -16px", padding: "2px 16px 8px" }}>
+                    {top5.map((c, i) => {
+                      const palette = [C.celeste, C.creme, `${C.lavanda}55`, C.menta, `${C.coral}55`];
+                      const bg = palette[i % palette.length];
+                      return (
+                        <div key={c.id} style={{ flexShrink: 0, width: 128, height: 132, borderRadius: 20, padding: "14px 12px", background: bg, position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", boxShadow: `0 4px 14px rgba(45,36,56,.06)` }}>
+                          <div style={{ position: "absolute", top: 8, left: 8, width: 22, height: 22, borderRadius: "50%", background: "rgba(255,255,255,.7)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, color: C.ink, fontSize: 11 }}>{i + 1}</div>
+                          <span style={{ fontSize: 30, marginBottom: 6 }}>{c.emoji}</span>
+                          <p style={{ color: "rgba(45,36,56,.6)", fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>{c.label}</p>
+                          <p style={{ color: C.ink, fontWeight: 900, fontSize: 14, fontVariantNumeric: "tabular-nums" }}>{fmt(c.total)}</p>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -459,36 +637,36 @@ export default function App() {
               {/* Recientes */}
               <div style={{ marginTop: 24 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                  <p style={{ fontWeight: 800, fontSize: 18, color: C.ink }}>Movimientos recientes</p>
+                  <p style={{ fontWeight: 800, fontSize: 20, color: C.ink }}>Movimientos recientes ⏳</p>
                   <button onClick={() => setTab("Movimientos")} style={{ background: "none", border: "none", color: C.lavanda, fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>Ver todo →</button>
                 </div>
-                {txs.length === 0 && <p style={{ color: C.ink2, textAlign: "center", padding: 30 }}>Todavía no hay movimientos 🪴<br /><small>Usá el botón + para agregar</small></p>}
-                {txs.slice(0, 5).map((tx) => {
-                  const cat = CAT[tx.cat] || { emoji: "💰", color: C.menta };
-                  const mth = mthInfo(tx.method);
-                  return (
-                    <div key={tx.id} className="tx-row" style={{ background: C.card, borderRadius: 20, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, cursor: "pointer", marginBottom: 8, boxShadow: `0 3px 14px ${C.lavanda}0E` }} onClick={() => startEdit(tx)}>
-                      <div style={{ width: 44, height: 44, borderRadius: 14, background: `${cat.color}22`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{cat.emoji}</div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontWeight: 800, fontSize: 14, color: C.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tx.desc}</p>
-                        <div style={{ display: "flex", gap: 6, marginTop: 3, alignItems: "center" }}>
-                          <span style={{ fontSize: 11, color: C.ink2 }}>{tx.fecha}</span>
-                          <span style={{ fontSize: 10, background: tx.method === "credito" ? C.coralSoft : C.celesteSoft, color: tx.method === "credito" ? "#D4587E" : "#4A90D9", borderRadius: 99, padding: "2px 8px", fontWeight: 700 }}>{mth.icon} {mth.label}</span>
+                {txs.length === 0 ? (
+                  <p style={{ color: C.ink2, textAlign: "center", padding: 30 }}>Todavía no hay movimientos 🪴<br /><small>Usá el botón + para agregar</small></p>
+                ) : (
+                  <div style={{ background: C.card, borderRadius: 26, overflow: "hidden", boxShadow: `0 4px 18px ${C.lavanda}12` }}>
+                    {txs.slice(0, 5).map((tx, idx, arr) => {
+                      const cat = CAT[tx.cat] || { emoji: "💰", color: C.menta };
+                      const mth = mthInfo(tx.method);
+                      return (
+                        <div key={tx.id} className="tx-row" style={{ padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, cursor: "pointer", borderBottom: idx < arr.length - 1 ? `1px solid ${C.bg}` : "none" }} onClick={() => startEdit(tx)}>
+                          <div style={{ width: 42, height: 42, borderRadius: "50%", background: `${cat.color}26`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{cat.emoji}</div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ fontWeight: 800, fontSize: 14, color: C.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tx.desc}</p>
+                            <p style={{ fontSize: 11, color: C.ink2, marginTop: 2, fontWeight: 500 }}>{tx.fecha} · {mth.icon} {mth.label}</p>
+                          </div>
+                          <p style={{ fontWeight: 900, fontSize: 15, color: tx.type === "ingreso" ? "#059669" : C.ink, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>{tx.type === "ingreso" ? "+" : "-"}{fmt(tx.monto)}</p>
                         </div>
-                      </div>
-                      <p style={{ fontWeight: 900, fontSize: 15, color: tx.type === "ingreso" ? "#1F8C5B" : C.ink, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>{tx.type === "ingreso" ? "+" : "-"}{fmt(tx.monto)}</p>
-                    </div>
-                  );
-                })}
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           )}
 
           {/* ─── MOVIMIENTOS ─── */}
           {tab === "Movimientos" && (
-            <div className="fade-in">
-              <p style={{ fontWeight: 800, fontSize: 22, color: C.ink, marginTop: 22, marginBottom: 14 }}>Movimientos</p>
-
+            <div className="fade-in" style={{ paddingTop: 8 }}>
               {/* Selector de mes */}
               <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 6, marginBottom: 12 }}>
                 {mesesDisponibles.map((ym) => (
@@ -517,19 +695,22 @@ export default function App() {
               {txsMes.map((tx) => {
                 const cat = CAT[tx.cat] || { emoji: "💰", color: C.menta, label: "Ingreso" };
                 const mth = mthInfo(tx.method);
+                const isCred = tx.method === "credito";
                 return (
-                  <div key={tx.id} className="tx-row" style={{ background: C.card, borderRadius: 22, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, cursor: "pointer", marginBottom: 10, boxShadow: `0 3px 14px ${C.lavanda}0E` }} onClick={() => startEdit(tx)}>
-                    <div style={{ width: 46, height: 46, borderRadius: 14, background: `${cat.color}22`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>{cat.emoji}</div>
+                  <div key={tx.id} className="tx-row" style={{ background: C.card, borderRadius: 22, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, cursor: "pointer", marginBottom: 10, boxShadow: `0 3px 14px ${C.lavanda}10` }} onClick={() => startEdit(tx)}>
+                    <div style={{ width: 48, height: 48, borderRadius: "50%", background: `${cat.color}26`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>{cat.emoji}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontWeight: 800, fontSize: 14, color: C.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tx.desc}</p>
-                      <div style={{ display: "flex", gap: 6, marginTop: 4, flexWrap: "wrap", alignItems: "center" }}>
+                      <p style={{ fontWeight: 800, fontSize: 15, color: C.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tx.desc}</p>
+                      <div style={{ display: "flex", gap: 8, marginTop: 4, flexWrap: "wrap", alignItems: "center" }}>
                         <span style={{ fontSize: 11, color: C.ink2 }}>{cat.label} · {tx.fecha}</span>
-                        <span style={{ fontSize: 10, background: tx.method === "credito" ? C.coralSoft : C.celesteSoft, color: tx.method === "credito" ? "#D4587E" : "#4A90D9", borderRadius: 99, padding: "2px 8px", fontWeight: 700 }}>{mth.icon} {mth.label}</span>
+                        <span style={{ fontSize: 10, background: isCred ? `${C.coral}40` : `${C.creme}80`, color: C.ink, borderRadius: 99, padding: "2px 8px", fontWeight: 800 }}>{mth.icon} {mth.label}</span>
                       </div>
                     </div>
-                    <div style={{ textAlign: "right", flexShrink: 0 }}>
-                      <p style={{ fontWeight: 900, fontSize: 15, color: tx.type === "ingreso" ? "#1F8C5B" : "#D4587E", fontVariantNumeric: "tabular-nums" }}>{tx.type === "ingreso" ? "+" : "-"}{fmt(tx.monto)}</p>
-                      <button onClick={(e) => { e.stopPropagation(); del(tx.id); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: C.ink2, marginTop: 2 }}>🗑️</button>
+                    <div style={{ textAlign: "right", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
+                      <p style={{ fontWeight: 900, fontSize: 16, color: tx.type === "ingreso" ? "#059669" : C.ink, fontVariantNumeric: "tabular-nums" }}>{tx.type === "ingreso" ? "+" : "-"}{fmt(tx.monto)}</p>
+                      <button aria-label="Eliminar" onClick={(e) => { e.stopPropagation(); del(tx.id); }} style={{ background: "none", border: "none", cursor: "pointer", color: `${C.ink2}88`, padding: 2, display: "flex" }}>
+                        <Icon name="delete" size={16} />
+                      </button>
                     </div>
                   </div>
                 );
@@ -539,21 +720,20 @@ export default function App() {
 
           {/* ─── FIJOS ─── */}
           {tab === "Fijos" && (
-            <div className="fade-in">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 22, marginBottom: 12 }}>
-                <p style={{ fontWeight: 800, fontSize: 22, color: C.ink }}>📌 Gastos fijos</p>
-                <button className="btn-pill" onClick={() => openFijoModal()} style={{ padding: "10px 18px", borderRadius: 99, border: "none", background: C.lavanda, color: "#fff", fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 6px 18px ${C.lavanda}55` }}>+ Agregar</button>
-              </div>
-              <div style={{ background: C.lavandaSoft, borderRadius: 20, padding: "16px 20px", marginBottom: 18, textAlign: "center" }}>
-                <p style={{ fontSize: 11, color: "#6B46C1", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>Total activos este mes</p>
-                <p style={{ fontWeight: 900, fontSize: 28, color: "#D4587E", marginTop: 4, fontVariantNumeric: "tabular-nums" }}>{fmt(totalFijos)}</p>
+            <div className="fade-in" style={{ paddingTop: 8 }}>
+              <div style={{ background: `${C.lavanda}1F`, borderRadius: 26, padding: "20px 20px", marginBottom: 22, textAlign: "center" }}>
+                <p style={{ fontSize: 12, color: C.ink2, fontWeight: 700, marginBottom: 4 }}>Total activos este mes</p>
+                <p style={{ fontWeight: 900, fontSize: 40, color: C.coral, fontVariantNumeric: "tabular-nums", letterSpacing: -1 }}>{fmt(totalFijos)}</p>
               </div>
               {activosFijos.length > 0 && <>
-                <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Activos este mes</p>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
+                  <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, letterSpacing: 1.5, textTransform: "uppercase" }}>Activos este mes</p>
+                  <p style={{ fontSize: 12, fontWeight: 800, color: C.lavanda }}>{activosFijos.length} {activosFijos.length === 1 ? "servicio" : "servicios"}</p>
+                </div>
                 {activosFijos.map((f) => <FijoCard key={f.id} f={f} onEdit={() => openFijoModal(f)} onDel={() => delFijo(f.id)} onToggle={() => toggleFijo(f.id)} onPagar={() => pagarCuota(f.id)} />)}
               </>}
               {inactivosFijos.length > 0 && <>
-                <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10, marginTop: 22 }}>Inactivos / Terminados</p>
+                <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10, marginTop: 26 }}>Inactivos / Terminados</p>
                 {inactivosFijos.map((f) => <FijoCard key={f.id} f={f} onEdit={() => openFijoModal(f)} onDel={() => delFijo(f.id)} onToggle={() => toggleFijo(f.id)} onPagar={() => pagarCuota(f.id)} />)}
               </>}
               {fijos.length === 0 && <p style={{ textAlign: "center", color: C.ink2, marginTop: 60 }}>Sin gastos fijos 🪴<br /><small>Agregá gym, celular, cuotas...</small></p>}
@@ -562,10 +742,7 @@ export default function App() {
 
           {/* ─── PRESUPUESTO ─── */}
           {tab === "Presupuesto" && (
-            <div className="fade-in">
-              <p style={{ fontWeight: 800, fontSize: 22, color: C.ink, marginTop: 22, marginBottom: 4 }}>Presupuesto</p>
-              <p style={{ fontSize: 13, color: C.ink2, marginBottom: 14, fontWeight: 600 }}>{monthLabel(cm)}</p>
-
+            <div className="fade-in" style={{ paddingTop: 8 }}>
               {/* Resumen total */}
               {(() => {
                 const totalBudget = Object.values(budgets).reduce((a, b) => a + (b || 0), 0);
@@ -601,7 +778,7 @@ export default function App() {
                   return (
                     <div key={c.id} style={{ background: C.card, borderRadius: 20, padding: "14px 14px 12px", cursor: "pointer", border: editing ? `2px solid ${C.lavanda}` : "2px solid transparent", boxShadow: `0 4px 14px ${C.lavanda}0E` }} onClick={() => setBudgetEdit(editing ? null : c.id)}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                        <div style={{ width: 32, height: 32, borderRadius: 10, background: `${c.color}22`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>{c.emoji}</div>
+                        <div style={{ width: 36, height: 36, borderRadius: "50%", background: `${c.color}26`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>{c.emoji}</div>
                         <span style={{ fontSize: 9, fontWeight: 800, background: over ? C.coralSoft : budget > 0 ? C.mentaSoft : "#F0F0F8", color: over ? "#D4587E" : budget > 0 ? "#1F8C5B" : C.ink2, borderRadius: 99, padding: "3px 8px" }}>{over ? "⚠️ Excedido" : budget > 0 ? `queda ${fmt(budget - spent)}` : "sin límite"}</span>
                       </div>
                       <p style={{ fontWeight: 800, fontSize: 13, color: C.ink, marginTop: 10 }}>{c.label}</p>
@@ -609,9 +786,12 @@ export default function App() {
                       <Bar spent={spent} budget={budget} color={c.color} />
                       {editing && (
                         <div style={{ marginTop: 10 }} onClick={(e) => e.stopPropagation()}>
-                          <input type="number" defaultValue={budget} autoFocus
-                            onBlur={(e) => { upd({ budgets: { ...budgets, [c.id]: Number(e.target.value) } }); setBudgetEdit(null); }}
-                            style={{ width: "100%", border: `1.5px solid ${c.color}`, borderRadius: 12, padding: "8px 12px", fontSize: 13, fontWeight: 700, color: C.ink, background: C.bg, fontFamily: "inherit" }} />
+                          <BudgetInput
+                            initial={budget}
+                            color={c.color}
+                            onSave={(n) => { upd({ budgets: { ...budgets, [c.id]: n } }); setBudgetEdit(null); }}
+                            onCancel={() => setBudgetEdit(null)}
+                          />
                         </div>
                       )}
                     </div>
@@ -623,9 +803,7 @@ export default function App() {
 
           {/* ─── AJUSTES ─── */}
           {tab === "Ajustes" && (
-            <div className="fade-in">
-              <p style={{ fontWeight: 800, fontSize: 22, color: C.ink, marginTop: 22, marginBottom: 18 }}>⚙️ Ajustes</p>
-
+            <div className="fade-in" style={{ paddingTop: 12 }}>
               <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Perfil</p>
               <div style={{ background: C.card, borderRadius: 20, padding: "16px 18px", marginBottom: 22, boxShadow: `0 4px 14px ${C.lavanda}10` }}>
                 <p style={{ fontSize: 12, color: C.ink2, marginBottom: 6, fontWeight: 600 }}>Tu nombre</p>
@@ -634,7 +812,7 @@ export default function App() {
 
               <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Datos</p>
               <div style={{ background: C.card, borderRadius: 20, padding: "16px 18px", marginBottom: 10, display: "flex", alignItems: "center", gap: 12, boxShadow: `0 4px 14px ${C.lavanda}10` }}>
-                <div style={{ width: 42, height: 42, borderRadius: 14, background: C.lavandaSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>📤</div>
+                <div style={{ width: 42, height: 42, borderRadius: "50%", background: C.lavandaSoft, display: "flex", alignItems: "center", justifyContent: "center", color: "#6B46C1" }}><Icon name="upload" size={20} /></div>
                 <div style={{ flex: 1 }}>
                   <p style={{ fontWeight: 800, fontSize: 14, color: C.ink }}>Exportar datos</p>
                   <p style={{ fontSize: 11, color: C.ink2, marginTop: 2 }}>Descargá un JSON con toda tu info</p>
@@ -643,7 +821,7 @@ export default function App() {
               </div>
 
               <div style={{ background: C.card, borderRadius: 20, padding: "16px 18px", marginBottom: 10, display: "flex", alignItems: "center", gap: 12, boxShadow: `0 4px 14px ${C.lavanda}10` }}>
-                <div style={{ width: 42, height: 42, borderRadius: 14, background: C.celesteSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>📥</div>
+                <div style={{ width: 42, height: 42, borderRadius: "50%", background: C.celesteSoft, display: "flex", alignItems: "center", justifyContent: "center", color: "#1A6BA0" }}><Icon name="download" size={20} /></div>
                 <div style={{ flex: 1 }}>
                   <p style={{ fontWeight: 800, fontSize: 14, color: C.ink }}>Importar datos</p>
                   <p style={{ fontSize: 11, color: C.ink2, marginTop: 2 }}>Reemplazá tu info actual con un backup</p>
@@ -653,7 +831,7 @@ export default function App() {
               </div>
 
               <div style={{ background: C.card, borderRadius: 20, padding: "16px 18px", marginBottom: 22, display: "flex", alignItems: "center", gap: 12, boxShadow: `0 4px 14px ${C.coral}1A` }}>
-                <div style={{ width: 42, height: 42, borderRadius: 14, background: C.coralSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>🗑️</div>
+                <div style={{ width: 42, height: 42, borderRadius: "50%", background: C.coralSoft, display: "flex", alignItems: "center", justifyContent: "center", color: "#D4587E" }}><Icon name="delete" size={20} /></div>
                 <div style={{ flex: 1 }}>
                   <p style={{ fontWeight: 800, fontSize: 14, color: "#D4587E" }}>Borrar todo</p>
                   <p style={{ fontSize: 11, color: C.ink2, marginTop: 2 }}>Esta acción no se puede deshacer</p>
@@ -673,18 +851,28 @@ export default function App() {
         </div>
 
         {/* BOTTOM NAV */}
-        <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, background: C.card, borderTop: `1px solid ${C.lavandaSoft}`, display: "flex", paddingTop: 10, paddingBottom: "calc(env(safe-area-inset-bottom) + 8px)", zIndex: 100 }}>
-          {[{ id: "Home", icon: "🏠", label: "Inicio" }, { id: "Movimientos", icon: "📋", label: "Movim." }, { id: "Fijos", icon: "📌", label: "Fijos" }, { id: "Presupuesto", icon: "🎯", label: "Presup." }, { id: "Ajustes", icon: "⚙️", label: "Ajustes" }].map((t) => (
-            <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "0 0 4px" }}>
-              <span style={{ fontSize: 18, opacity: tab === t.id ? 1 : 0.6 }}>{t.icon}</span>
-              <span style={{ fontSize: 10, fontWeight: tab === t.id ? 800 : 600, color: tab === t.id ? C.lavanda : C.ink2, fontFamily: "inherit" }}>{t.label}</span>
-              {tab === t.id && <div style={{ width: 20, height: 3, borderRadius: 99, background: C.lavanda }} />}
-            </button>
-          ))}
+        <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, background: C.card, borderRadius: "28px 28px 0 0", display: "flex", justifyContent: "space-around", alignItems: "center", paddingTop: 10, paddingBottom: "calc(env(safe-area-inset-bottom) + 10px)", paddingLeft: 8, paddingRight: 8, boxShadow: `0 -8px 30px ${C.lavanda}1A`, zIndex: 100 }}>
+          {[
+            { id: "Home", icon: "home", label: "Inicio" },
+            { id: "Movimientos", icon: "receipt_long", label: "Movim." },
+            { id: "Fijos", icon: "calendar_today", label: "Fijos" },
+            { id: "Presupuesto", icon: "account_balance_wallet", label: "Presup." },
+            { id: "Ajustes", icon: "settings", label: "Ajustes" },
+          ].map((t) => {
+            const active = tab === t.id;
+            return (
+              <button key={t.id} onClick={() => setTab(t.id)} className="btn-pill" style={{ background: active ? `${C.lavanda}1A` : "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "6px 10px", borderRadius: 16, color: active ? C.lavanda : C.ink2 }}>
+                <Icon name={t.icon} size={22} filled={active} weight={active ? 600 : 400} />
+                <span style={{ fontSize: 10, fontWeight: active ? 800 : 600, fontFamily: "inherit" }}>{t.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* FAB */}
-        <button className="btn-pill" onClick={() => openModal("gasto")} style={{ position: "fixed", bottom: "calc(env(safe-area-inset-bottom) + 92px)", right: "max(16px, calc(50% - 215px + 16px))", width: 56, height: 56, borderRadius: 20, border: "none", background: C.coral, color: "#fff", fontSize: 28, cursor: "pointer", boxShadow: `0 10px 24px ${C.coral}88`, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 101, fontWeight: 900 }}>+</button>
+        <button aria-label="Agregar gasto" className="btn-pill" onClick={() => openModal("gasto")} style={{ position: "fixed", bottom: "calc(env(safe-area-inset-bottom) + 96px)", right: "max(20px, calc(50% - 215px + 20px))", width: 60, height: 60, borderRadius: "50%", border: "none", background: C.coral, color: "#fff", cursor: "pointer", boxShadow: `0 12px 28px ${C.coral}99`, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 101 }}>
+          <Icon name="add" size={30} weight={700} />
+        </button>
 
         {/* MODAL GASTO/INGRESO/SUELDO */}
         {showModal && (
