@@ -47,12 +47,14 @@
       "Bash(gh pr status)",
       "Bash(gh pr checks:*)",
       "Bash(gh repo view:*)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Bash(gh pr merge:*)"
     ],
     "deny": [
       "Bash(git push --force:*)",
       "Bash(git push -f:*)",
       "Bash(git push --force-with-lease:*)",
+      "Bash(git rebase:*)",
       "Bash(git reset --hard:*)",
       "Bash(git clean -f:*)",
       "Bash(git clean -fd:*)",
@@ -60,10 +62,7 @@
       "Bash(git push origin --delete:*)",
       "Bash(git push origin :*)",
       "Bash(git commit --amend:*)",
-      "Bash(git rebase:*)",
-      "Bash(git checkout main)",
       "Bash(git checkout master)",
-      "Bash(git switch main)",
       "Bash(git switch master)",
       "Bash(npm publish:*)",
       "Bash(rm -rf:*)",
