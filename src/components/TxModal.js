@@ -19,7 +19,7 @@ export function TxModal({ modalType, setModalType, form, setForm, editId, sueldo
   const allCats = [...CATS, ...customCats];
   const showToggle = modalType !== "sueldo" && !editId;
   const [userPickedCat, setUserPickedCat] = useState(!!editId);
-  useEffect(() => { setUserPickedCat(!!editId); }, [editId]);
+  useEffect(() => { setUserPickedCat(!!editId); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const switchType = (newType) => {
     if (newType === modalType) return;
     setModalType(newType);

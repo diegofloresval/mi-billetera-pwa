@@ -68,8 +68,9 @@ export function MovimientosView({ mesesDisponibles, movMes, setMovMes, ingMovMes
         const cat = CAT[tx.cat] || { emoji: "💰", color: C.menta, label: "Ingreso" };
         const mth = mthInfo(tx.method);
         const isCred = tx.method === "credito";
+        const isAporte = tx.cat === "ahorro";
         return (
-          <div key={tx.id} className="tx-row" style={{ background: C.card, borderRadius: 22, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, cursor: "pointer", marginBottom: 10, boxShadow: `0 3px 14px ${C.hoja}1F` }} onClick={() => onEditTx(tx)}>
+          <div key={tx.id} className="tx-row" style={{ background: C.card, borderRadius: 22, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, cursor: isAporte ? "default" : "pointer", marginBottom: 10, boxShadow: `0 3px 14px ${C.hoja}1F` }} onClick={() => isAporte ? null : onEditTx(tx)} title={isAporte ? "Editá este aporte desde la meta en Ahorros" : undefined}>
             <div style={{ width: 48, height: 48, borderRadius: "50%", background: C.mentaSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>{cat.emoji}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontWeight: 800, fontSize: 15, color: C.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tx.desc}</p>

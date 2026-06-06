@@ -6,7 +6,7 @@ const inp = (extra = {}) => ({
 });
 
 export function AhorroModal({ ahorroForm, setAhorroForm, editAhorroId, onSubmit, onClose }) {
-  const currentColor = ahorroForm.color || AHORRO_COLORS[0];
+  const selectedColor = ahorroForm.color || AHORRO_COLORS[0];
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(26,61,42,.55)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={onClose}>
       <div className="slide-up" style={{ width: "100%", maxWidth: 430, background: C.card, borderRadius: "28px 28px 0 0", padding: "24px 20px calc(env(safe-area-inset-bottom) + 32px)", maxHeight: "92dvh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
@@ -31,7 +31,7 @@ export function AhorroModal({ ahorroForm, setAhorroForm, editAhorroId, onSubmit,
         <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>Color</p>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 22 }}>
           {AHORRO_COLORS.map((col) => {
-            const active = currentColor === col;
+            const active = selectedColor === col;
             return (
               <button key={col} aria-label={`Color ${col}`} onClick={() => setAhorroForm({ ...ahorroForm, color: col })} style={{ width: 38, height: 38, borderRadius: "50%", border: active ? `3px solid ${C.ink}` : `3px solid ${C.card}`, background: col, cursor: "pointer", boxShadow: `0 2px 8px ${col}66`, padding: 0, fontFamily: "inherit" }} />
             );

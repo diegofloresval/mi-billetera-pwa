@@ -13,7 +13,6 @@ const S = {
   circleBtnBase: { width: 42, height: 42, borderRadius: "50%", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
   ingresoBtn: { width: 42, height: 42, borderRadius: "50%", border: "none", background: C.hoja, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 16px ${C.hoja}66` },
   sueldoBtn: { width: 42, height: 42, borderRadius: "50%", border: "none", background: C.menta, color: C.inkOnHoja, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 16px ${C.menta}88` },
-  searchBtn: { width: 42, height: 42, borderRadius: "50%", border: "none", background: C.hoja, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 16px ${C.hoja}66` },
   avatar: { width: 42, height: 42, borderRadius: "50%", background: C.hojaSoft, border: `2px solid ${C.hoja}`, display: "flex", alignItems: "center", justifyContent: "center", color: C.esmeralda, fontWeight: 900, fontSize: 16 },
   addFijoBtn: { flexShrink: 0, padding: "11px 18px", borderRadius: 99, border: "none", background: C.hoja, color: "#fff", fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6, boxShadow: `0 6px 18px ${C.hoja}66` },
   settingsBtn: { width: 42, height: 42, borderRadius: "50%", border: "none", background: C.hojaSoft, color: C.inkOnHoja, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
@@ -28,6 +27,7 @@ export function TopBar({ tab, nombre, cm, onAddIngreso, onAddSueldo, onAddFijo, 
             : tab === "Movimientos" ? "Movimientos"
             : tab === "Fijos" ? "📌 Gastos fijos"
             : tab === "Presupuesto" ? "Presupuesto"
+            : tab === "Ahorros" ? "🐷 Ahorros"
             : "⚙️ Ajustes"}
         </p>
         {tab === "Home" && (
@@ -52,16 +52,11 @@ export function TopBar({ tab, nombre, cm, onAddIngreso, onAddSueldo, onAddFijo, 
           )}
         </div>
       )}
-      {tab === "Movimientos" && (
+      {tab === "Movimientos" && onOpenAjustes && (
         <div style={S.actionsAligned}>
-          <button aria-label="Buscar" className="btn-pill" style={S.searchBtn}>
-            <Icon name="search" size={22} weight={600} />
+          <button aria-label="Ajustes" className="btn-pill" onClick={onOpenAjustes} style={S.settingsBtn}>
+            <Icon name="settings" size={20} weight={600} />
           </button>
-          {onOpenAjustes && (
-            <button aria-label="Ajustes" className="btn-pill" onClick={onOpenAjustes} style={S.settingsBtn}>
-              <Icon name="settings" size={20} weight={600} />
-            </button>
-          )}
         </div>
       )}
       {tab === "Fijos" && (
