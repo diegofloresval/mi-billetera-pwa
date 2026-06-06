@@ -11,7 +11,7 @@ export function FijoCard({ f, onEdit, onDel, onToggle, onPagar }) {
     return (
       <div style={{ borderRadius: 24, padding: "16px 18px", border: `1.5px dashed ${C.hoja}66`, marginBottom: 12, background: "transparent" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#EBE9E0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0, filter: "grayscale(0.6)", opacity: 0.7 }}>{cat.emoji}</div>
+          <div style={{ width: 48, height: 48, borderRadius: "50%", background: C.hojaSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0, filter: "grayscale(0.6)", opacity: 0.7 }}>{cat.emoji}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ fontWeight: 800, fontSize: 15, color: C.ink2 }}>{f.desc}</p>
             <p style={{ fontSize: 10, color: C.ink2, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2 }}>

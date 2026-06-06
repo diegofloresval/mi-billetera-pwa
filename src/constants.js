@@ -23,15 +23,6 @@ export const C = {
   inkSuccess: "#007A3D",
   inkOnHoja:  "#0F5C2C",
   inkDanger:  "#A8324E",
-
-  // alias retrocompatible: muchos archivos siguen leyendo C.lavanda/C.creme/C.celeste.
-  // los mapeamos al nuevo lenguaje verde así no rompen mientras se migra cada archivo.
-  lavanda:     "#73C653",
-  lavandaSoft: "#E3F4D6",
-  creme:       "#BEF8AD",
-  cremeSoft:   "#EBFAE4",
-  celeste:     "#D9EFE2",
-  celesteSoft: "#EBFAE4",
 };
 
 export const CATS = [
