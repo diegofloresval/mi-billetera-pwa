@@ -20,7 +20,7 @@ const TOGGLE_BTN = (active, disabled) => ({
 });
 
 export function HomeView({
-  balance, sueldo, totalFijos, totalIngresos, totalGastos,
+  balance, balanceUnified, sueldo, totalFijos, totalIngresos, totalGastos,
   totalsByCurrency, totalsUnifiedARS, fxRate,
   activosFijos, top5, txs, mthInfo, onGoMovimientos, onGoFijos, onEditTx,
   ahorros = [], onGoAhorros,
@@ -56,7 +56,7 @@ export function HomeView({
               </div>
             )}
           </div>
-          <AnimNumber value={balance} style={{ display: "block", fontSize: 40, fontWeight: 900, color: C.ink, marginTop: 6, letterSpacing: -1, fontVariantNumeric: "tabular-nums" }} />
+          <AnimNumber value={effectiveMode === "unified" && balanceUnified != null ? balanceUnified : balance} style={{ display: "block", fontSize: 40, fontWeight: 900, color: C.ink, marginTop: 6, letterSpacing: -1, fontVariantNumeric: "tabular-nums" }} />
           <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: C.hojaSoft, color: C.ink, borderRadius: 99, padding: "5px 12px", fontSize: 11, fontWeight: 800, border: `1px solid ${C.hoja}55` }}>
               <span style={{ width: 8, height: 8, borderRadius: "50%", background: C.esmeralda }} /> Sueldo {fmt(sueldo)}

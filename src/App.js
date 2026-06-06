@@ -94,10 +94,17 @@ export default function App() {
 
   const spentByCatMap = useMemo(() => {
     const m = {};
-    for (const g of gastosMes) m[g.cat] = (m[g.cat] || 0) + g.monto;
-    for (const f of fijos) if (fijoActivoEsteMes(f, cm)) m[f.cat] = (m[f.cat] || 0) + f.monto;
+    const add = (cat, monto, currency) => {
+      const cur = currency || "ARS";
+      if (cur === "ARS") { m[cat] = (m[cat] || 0) + monto; return; }
+      const v = toARS(monto, cur, fxRate);
+      if (v == null) return;
+      m[cat] = (m[cat] || 0) + v;
+    };
+    for (const g of gastosMes) add(g.cat, g.monto, g.currency);
+    for (const f of fijos) if (fijoActivoEsteMes(f, cm)) add(f.cat, f.monto, f.currency);
     return m;
-  }, [gastosMes, fijos, cm]);
+  }, [gastosMes, fijos, cm, fxRate]);
 
   const spentByCat = useCallback((cat) => spentByCatMap[cat] || 0, [spentByCatMap]);
 
@@ -212,9 +219,25 @@ export default function App() {
     setShowAhorroModal(false);
   };
 
-  const delAhorro = (id) => removeWithUndo("ahorros", id, "Ahorro eliminado");
+  const delAhorro = (id) => {
+    const removed = state.ahorros.find((x) => x.id === id);
+    if (!removed) return;
+    const removedAportes = state.aportes.filter((p) => p.ahorroId === id);
+    setState((s) => ({
+      ...s,
+      ahorros: s.ahorros.filter((x) => x.id !== id),
+      aportes: s.aportes.filter((p) => p.ahorroId !== id),
+    }));
+    showToast("Ahorro eliminado", () =>
+      setState((s) => s.ahorros.some((x) => x.id === id) ? s : {
+        ...s,
+        ahorros: [removed, ...s.ahorros],
+        aportes: [...removedAportes, ...s.aportes],
+      })
+    );
+  };
 
-  const aportar = (ahorroId, monto, currency) => {
+  const aportar = (ahorroId, monto, currency, fechaArg) => {
     const a = ahorros.find((x) => x.id === ahorroId);
     if (!a) return;
     const n = Number(monto);
@@ -222,7 +245,7 @@ export default function App() {
     const cur = currency || a.currency || "ARS";
     const aporteId = uid();
     const txId = uid();
-    const fecha = today();
+    const fecha = fechaArg || today();
     const newAporte = { id: aporteId, ahorroId, monto: n, currency: cur, fecha };
     const newTx = { id: txId, type: "gasto", cat: "ahorro", desc: `Aporte ${a.nombre}`, monto: n, currency: cur, fecha, method: "transfer" };
     upd({
@@ -318,6 +341,7 @@ export default function App() {
           {tab === "Home" && (
             <HomeView
               balance={balance}
+              balanceUnified={totalsUnifiedARS ? totalsUnifiedARS.ingresos - totalsUnifiedARS.gastos : null}
               sueldo={sueldo}
               totalFijos={totalFijos}
               totalIngresos={totalIngresos}
@@ -369,7 +393,6 @@ export default function App() {
           {tab === "Ahorros" && (
             <AhorrosView
               ahorros={ahorros}
-              aportes={aportes}
               onOpenModal={openAhorroModal}
               onAportar={aportar}
               onDelAhorro={delAhorro}
@@ -399,13 +422,13 @@ export default function App() {
               onAddCustomCat={(cat) => upd({ customCats: [...customCats, cat] })}
               onDelCustomCat={(id) => upd({ customCats: customCats.filter((c) => c.id !== id) })}
               fxRate={fxRate}
-              onUpdateFxRate={(rate) => upd({ fxRate: { USD_ARS: Number(rate), updatedAt: today() } })}
+              onUpdateFxRate={(rate) => { if (Number(rate) > 0) upd({ fxRate: { USD_ARS: Number(rate), updatedAt: today() } }); }}
             />
           )}
         </div>
 
         <BottomNav tab={tab} onChange={setTab} />
-        <Fab onClick={() => tab === "Ahorros" ? openAhorroModal() : tab === "Fijos" ? openFijoModal() : openModal("gasto")} />
+        <Fab activeTab={tab} onClick={() => tab === "Ahorros" ? openAhorroModal() : tab === "Fijos" ? openFijoModal() : openModal("gasto")} />
 
         {showModal && (
           <TxModal
