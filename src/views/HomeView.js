@@ -23,6 +23,7 @@ export function HomeView({
   balance, sueldo, totalFijos, totalIngresos, totalGastos,
   totalsByCurrency, totalsUnifiedARS, fxRate,
   activosFijos, top5, txs, mthInfo, onGoMovimientos, onGoFijos, onEditTx,
+  ahorros = [], onGoAhorros,
 }) {
   const [viewMode, setViewMode] = useState("split");
 
@@ -129,6 +130,27 @@ export function HomeView({
           })}
         </div>
       )}
+
+      {ahorros.length > 0 && (() => {
+        const totARS = ahorros.filter((a) => (a.currency || "ARS") === "ARS").reduce((s, a) => s + (a.actual || 0), 0);
+        const totUSD = ahorros.filter((a) => a.currency === "USD").reduce((s, a) => s + (a.actual || 0), 0);
+        return (
+          <div style={{ marginTop: 22 }}>
+            <div onClick={onGoAhorros} className="btn-pill" style={{ background: C.card, borderRadius: 22, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, boxShadow: `0 4px 16px ${C.lavanda}12`, cursor: "pointer" }}>
+              <div style={{ width: 44, height: 44, borderRadius: "50%", background: `${C.lavanda}26`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>🐷</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontWeight: 800, fontSize: 14, color: C.ink }}>Ahorros</p>
+                <p style={{ fontSize: 11, color: C.ink2, marginTop: 2, fontWeight: 600 }}>{ahorros.length} meta{ahorros.length === 1 ? "" : "s"}</p>
+              </div>
+              <div style={{ textAlign: "right", flexShrink: 0 }}>
+                {totARS > 0 && <p style={{ fontWeight: 900, fontSize: 14, color: C.ink, fontVariantNumeric: "tabular-nums" }}>{fmt(totARS, "ARS")}</p>}
+                {totUSD > 0 && <p style={{ fontWeight: 800, fontSize: 12, color: C.ink2, fontVariantNumeric: "tabular-nums", marginTop: 2 }}>{fmt(totUSD, "USD")}</p>}
+                {totARS === 0 && totUSD === 0 && <p style={{ fontWeight: 800, fontSize: 12, color: C.ink2 }}>Sin aportes</p>}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {top5.length > 0 && (
         <div style={{ marginTop: 22 }}>

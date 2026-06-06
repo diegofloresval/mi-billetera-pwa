@@ -56,6 +56,43 @@ const sanitizeFxRate = (fx) => {
   return { USD_ARS, updatedAt };
 };
 
+const sanitizeAhorro = (a) => {
+  if (!a || typeof a !== "object") return null;
+  if (typeof a.id !== "string" || !a.id) return null;
+  if (typeof a.nombre !== "string" || !a.nombre) return null;
+  const meta = Number(a.meta);
+  if (!Number.isFinite(meta) || meta <= 0) return null;
+  const actual = Number(a.actual);
+  if (!Number.isFinite(actual) || actual < 0) return null;
+  if (typeof a.color !== "string" || !a.color) return null;
+  if (typeof a.emoji !== "string" || !a.emoji) return null;
+  return {
+    id: a.id,
+    nombre: a.nombre,
+    meta,
+    actual,
+    color: a.color,
+    emoji: a.emoji,
+    currency: sanitizeCurrency(a.currency),
+  };
+};
+
+const sanitizeAporte = (p) => {
+  if (!p || typeof p !== "object") return null;
+  if (typeof p.id !== "string" || !p.id) return null;
+  if (typeof p.ahorroId !== "string" || !p.ahorroId) return null;
+  const monto = Number(p.monto);
+  if (!Number.isFinite(monto) || monto <= 0) return null;
+  if (!isValidYmd(p.fecha)) return null;
+  return {
+    id: p.id,
+    ahorroId: p.ahorroId,
+    monto,
+    fecha: p.fecha,
+    currency: sanitizeCurrency(p.currency),
+  };
+};
+
 const sanitizeCustomCat = (c) => {
   if (!c || typeof c !== "object") return null;
   if (typeof c.id !== "string" || !c.id) return null;
@@ -74,7 +111,16 @@ export const sanitizeState = (raw) => {
   const validCatIds = new Set([...Object.keys(CAT), ...customCats.map((c) => c.id)]);
   const txs = txsIn.map((t) => sanitizeTx(t, validCatIds)).filter(Boolean);
   const fijos = fijosIn.map((f) => sanitizeFijo(f, validCatIds)).filter(Boolean);
-  const dropped = (txsIn.length - txs.length) + (fijosIn.length - fijos.length) + (customCatsIn.length - customCats.length);
+  const ahorrosIn = Array.isArray(raw.ahorros) ? raw.ahorros : [];
+  const aportesIn = Array.isArray(raw.aportes) ? raw.aportes : [];
+  const ahorros = ahorrosIn.map(sanitizeAhorro).filter(Boolean);
+  const aportes = aportesIn.map(sanitizeAporte).filter(Boolean);
+  const dropped =
+    (txsIn.length - txs.length) +
+    (fijosIn.length - fijos.length) +
+    (customCatsIn.length - customCats.length) +
+    (ahorrosIn.length - ahorros.length) +
+    (aportesIn.length - aportes.length);
   return {
     state: {
       ...INITIAL_STATE,
@@ -85,6 +131,8 @@ export const sanitizeState = (raw) => {
       nombre: typeof raw.nombre === "string" ? raw.nombre : "",
       customCats,
       fxRate: sanitizeFxRate(raw.fxRate),
+      ahorros,
+      aportes,
     },
     dropped,
   };

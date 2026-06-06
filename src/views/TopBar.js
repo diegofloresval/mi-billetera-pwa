@@ -16,9 +16,10 @@ const S = {
   searchBtn: { width: 42, height: 42, borderRadius: "50%", border: "none", background: C.lavanda, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 16px ${C.lavanda}55` },
   avatar: { width: 42, height: 42, borderRadius: "50%", background: C.lavandaSoft, border: `2px solid ${C.lavanda}`, display: "flex", alignItems: "center", justifyContent: "center", color: "#6B46C1", fontWeight: 900, fontSize: 16 },
   addFijoBtn: { flexShrink: 0, padding: "11px 18px", borderRadius: 99, border: "none", background: C.lavanda, color: "#fff", fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6, boxShadow: `0 6px 18px ${C.lavanda}55` },
+  settingsBtn: { width: 42, height: 42, borderRadius: "50%", border: "none", background: C.lavandaSoft, color: "#6B46C1", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
 };
 
-export function TopBar({ tab, nombre, cm, onAddIngreso, onAddSueldo, onAddFijo }) {
+export function TopBar({ tab, nombre, cm, onAddIngreso, onAddSueldo, onAddFijo, onOpenAjustes }) {
   return (
     <div style={S.wrap}>
       <div style={S.titleBox}>
@@ -44,6 +45,11 @@ export function TopBar({ tab, nombre, cm, onAddIngreso, onAddSueldo, onAddFijo }
           <button aria-label="Mi sueldo" className="btn-pill" onClick={onAddSueldo} style={S.sueldoBtn}>
             <Icon name="work" size={20} weight={600} />
           </button>
+          {onOpenAjustes && tab !== "Ajustes" && (
+            <button aria-label="Ajustes" className="btn-pill" onClick={onOpenAjustes} style={S.settingsBtn}>
+              <Icon name="settings" size={20} weight={600} />
+            </button>
+          )}
         </div>
       )}
       {tab === "Movimientos" && (
@@ -51,12 +57,31 @@ export function TopBar({ tab, nombre, cm, onAddIngreso, onAddSueldo, onAddFijo }
           <button aria-label="Buscar" className="btn-pill" style={S.searchBtn}>
             <Icon name="search" size={22} weight={600} />
           </button>
+          {onOpenAjustes && (
+            <button aria-label="Ajustes" className="btn-pill" onClick={onOpenAjustes} style={S.settingsBtn}>
+              <Icon name="settings" size={20} weight={600} />
+            </button>
+          )}
         </div>
       )}
       {tab === "Fijos" && (
-        <button className="btn-pill" onClick={onAddFijo} style={S.addFijoBtn}>
-          <Icon name="add" size={18} weight={700} /> Agregar
-        </button>
+        <div style={S.actionsAligned}>
+          <button className="btn-pill" onClick={onAddFijo} style={S.addFijoBtn}>
+            <Icon name="add" size={18} weight={700} /> Agregar
+          </button>
+          {onOpenAjustes && (
+            <button aria-label="Ajustes" className="btn-pill" onClick={onOpenAjustes} style={S.settingsBtn}>
+              <Icon name="settings" size={20} weight={600} />
+            </button>
+          )}
+        </div>
+      )}
+      {(tab === "Ahorros" || tab === "Presupuesto") && onOpenAjustes && (
+        <div style={S.actionsAligned}>
+          <button aria-label="Ajustes" className="btn-pill" onClick={onOpenAjustes} style={S.settingsBtn}>
+            <Icon name="settings" size={20} weight={600} />
+          </button>
+        </div>
       )}
     </div>
   );

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { C, CATS, METHODS } from "./constants";
+import { C, CATS, METHODS, AHORRO_COLORS } from "./constants";
 import {
   uid, today, currentMonth, monthOf,
   isInMonth, fijoActivoEsteMes, sanitizeState, toARS,
@@ -7,6 +7,7 @@ import {
 import { useWallet } from "./useWallet";
 import { TxModal } from "./components/TxModal";
 import { FijoModal } from "./components/FijoModal";
+import { AhorroModal } from "./components/AhorroModal";
 import { Toast } from "./components/Toast";
 import { BottomNav, Fab } from "./components/BottomNav";
 import { TopBar } from "./views/TopBar";
@@ -14,6 +15,7 @@ import { InstallBanner } from "./views/InstallBanner";
 import { HomeView } from "./views/HomeView";
 import { MovimientosView } from "./views/MovimientosView";
 import { FijosView } from "./views/FijosView";
+import { AhorrosView } from "./views/AhorrosView";
 import { PresupuestoView } from "./views/PresupuestoView";
 import { AjustesView } from "./views/AjustesView";
 
@@ -24,6 +26,9 @@ export default function App() {
   const [modalType, setModalType] = useState("gasto");
   const [showFijoModal, setShowFijoModal] = useState(false);
   const [editFijoId, setEditFijoId] = useState(null);
+  const [showAhorroModal, setShowAhorroModal] = useState(false);
+  const [editAhorroId, setEditAhorroId] = useState(null);
+  const [ahorroForm, setAhorroForm] = useState({ nombre: "", meta: "", color: AHORRO_COLORS[0], emoji: "🐷", currency: "ARS" });
   const [form, setForm] = useState({ desc: "", monto: "", cat: "supermercado", fecha: today(), method: "debito", currency: "ARS" });
   const [fijoForm, setFijoForm] = useState({ desc: "", monto: "", cat: "gym", method: "debito", tipo: "mensual", hastaFecha: "", cuotasTotales: 6, desde: currentMonth(), currency: "ARS" });
   const [editId, setEditId] = useState(null);
@@ -34,7 +39,7 @@ export default function App() {
   const [movMes, setMovMes] = useState(currentMonth());
   const fileInputRef = useRef(null);
 
-  const { txs, fijos, budgets, sueldo, nombre, customCats = [], fxRate = { USD_ARS: 0, updatedAt: null } } = state;
+  const { txs, fijos, budgets, sueldo, nombre, customCats = [], fxRate = { USD_ARS: 0, updatedAt: null }, ahorros = [], aportes = [] } = state;
 
   useEffect(() => { onQuotaError((msg) => showToast(msg)); }, [onQuotaError]);
   useEffect(() => { onLoadWarning((msg) => showToast(msg)); }, [onLoadWarning]);
@@ -178,6 +183,56 @@ export default function App() {
     showToast(completa ? "Última cuota ✓ Plan completado" : "Cuota registrada ✓");
   };
 
+  const openAhorroModal = (a = null) => {
+    setEditAhorroId(a ? a.id : null);
+    setAhorroForm(a
+      ? { nombre: a.nombre, meta: a.meta != null ? String(a.meta) : "", color: a.color || AHORRO_COLORS[0], emoji: a.emoji || "🐷", currency: a.currency || "ARS" }
+      : { nombre: "", meta: "", color: AHORRO_COLORS[0], emoji: "🐷", currency: "ARS" });
+    setShowAhorroModal(true);
+  };
+
+  const submitAhorro = () => {
+    if (!ahorroForm.nombre.trim()) return;
+    const metaNum = Number(ahorroForm.meta);
+    if (!Number.isFinite(metaNum) || metaNum <= 0) return;
+    const base = {
+      nombre: ahorroForm.nombre.trim(),
+      meta: metaNum,
+      color: ahorroForm.color || AHORRO_COLORS[0],
+      emoji: ahorroForm.emoji || "🐷",
+      currency: ahorroForm.currency || "ARS",
+    };
+    if (editAhorroId) {
+      upd({ ahorros: ahorros.map((x) => x.id === editAhorroId ? { ...x, ...base } : x) });
+      showToast("Ahorro actualizado ✓");
+    } else {
+      upd({ ahorros: [{ ...base, id: uid(), actual: 0, createdAt: today() }, ...ahorros] });
+      showToast("Ahorro creado ✓");
+    }
+    setShowAhorroModal(false);
+  };
+
+  const delAhorro = (id) => removeWithUndo("ahorros", id, "Ahorro eliminado");
+
+  const aportar = (ahorroId, monto, currency) => {
+    const a = ahorros.find((x) => x.id === ahorroId);
+    if (!a) return;
+    const n = Number(monto);
+    if (!Number.isFinite(n) || n <= 0) return;
+    const cur = currency || a.currency || "ARS";
+    const aporteId = uid();
+    const txId = uid();
+    const fecha = today();
+    const newAporte = { id: aporteId, ahorroId, monto: n, currency: cur, fecha };
+    const newTx = { id: txId, type: "gasto", cat: "ahorro", desc: `Aporte ${a.nombre}`, monto: n, currency: cur, fecha, method: "transfer" };
+    upd({
+      ahorros: ahorros.map((x) => x.id === ahorroId ? { ...x, actual: (x.actual || 0) + n } : x),
+      aportes: [newAporte, ...aportes],
+      txs: [newTx, ...txs],
+    });
+    showToast("Aporte registrado ✓");
+  };
+
   const mthInfo = (id) => METHODS.find((m) => m.id === id) || METHODS[0];
   const activosFijos = useMemo(() => fijos.filter((f) => fijoActivoEsteMes(f, cm)), [fijos, cm]);
   const inactivosFijos = fijos.filter((f) => !fijoActivoEsteMes(f, cm));
@@ -254,6 +309,7 @@ export default function App() {
           onAddIngreso={() => openModal("ingreso")}
           onAddSueldo={() => openModal("sueldo")}
           onAddFijo={() => openFijoModal()}
+          onOpenAjustes={() => setTab("Ajustes")}
         />
 
         {showInstall && <InstallBanner onInstall={installApp} onDismiss={() => setShowInstall(false)} />}
@@ -275,6 +331,8 @@ export default function App() {
               mthInfo={mthInfo}
               onGoMovimientos={() => setTab("Movimientos")}
               onGoFijos={() => setTab("Fijos")}
+              onGoAhorros={() => setTab("Ahorros")}
+              ahorros={ahorros}
               onEditTx={startEdit}
             />
           )}
@@ -308,6 +366,16 @@ export default function App() {
             />
           )}
 
+          {tab === "Ahorros" && (
+            <AhorrosView
+              ahorros={ahorros}
+              aportes={aportes}
+              onOpenModal={openAhorroModal}
+              onAportar={aportar}
+              onDelAhorro={delAhorro}
+            />
+          )}
+
           {tab === "Presupuesto" && (
             <PresupuestoView
               budgets={budgets}
@@ -337,7 +405,7 @@ export default function App() {
         </div>
 
         <BottomNav tab={tab} onChange={setTab} />
-        <Fab onClick={() => tab === "Fijos" ? openFijoModal() : openModal("gasto")} />
+        <Fab onClick={() => tab === "Ahorros" ? openAhorroModal() : tab === "Fijos" ? openFijoModal() : openModal("gasto")} />
 
         {showModal && (
           <TxModal
@@ -361,6 +429,16 @@ export default function App() {
             customCats={customCats}
             onSubmit={submitFijo}
             onClose={() => setShowFijoModal(false)}
+          />
+        )}
+
+        {showAhorroModal && (
+          <AhorroModal
+            ahorroForm={ahorroForm}
+            setAhorroForm={setAhorroForm}
+            editAhorroId={editAhorroId}
+            onSubmit={submitAhorro}
+            onClose={() => setShowAhorroModal(false)}
           />
         )}
 

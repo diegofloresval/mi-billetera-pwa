@@ -5,8 +5,8 @@ const TABS = [
   { id: "Home", icon: "home", label: "Inicio" },
   { id: "Movimientos", icon: "receipt_long", label: "Movim." },
   { id: "Fijos", icon: "calendar_today", label: "Fijos" },
+  { id: "Ahorros", icon: "savings", label: "Ahorros" },
   { id: "Presupuesto", icon: "account_balance_wallet", label: "Presup." },
-  { id: "Ajustes", icon: "settings", label: "Ajustes" },
 ];
 
 export function BottomNav({ tab, onChange }) {

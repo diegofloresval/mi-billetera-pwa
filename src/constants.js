@@ -32,7 +32,9 @@ export const CATS = [
   { id: "otro",         label: "Otro",         emoji: "📦", color: "#95A5A6" },
 ];
 
-export const CAT = Object.fromEntries(CATS.map((c) => [c.id, c]));
+export const AHORRO_CAT = { id: "ahorro", label: "Ahorro", emoji: "🐷", color: "#A78BFA" };
+
+export const CAT = Object.fromEntries([...CATS, AHORRO_CAT].map((c) => [c.id, c]));
 
 export const METHODS = [
   { id: "debito",   label: "Débito",        icon: "💳" },
@@ -60,6 +62,8 @@ export const INITIAL_STATE = {
   nombre: "",
   customCats: [],
   fxRate: { USD_ARS: 0, updatedAt: null },
+  ahorros: [],
+  aportes: [],
 };
 
 export const CUSTOM_CAT_COLORS = [
@@ -67,3 +71,5 @@ export const CUSTOM_CAT_COLORS = [
   "#E91E8C", "#F39C12", "#1ABC9C", "#E74C3C",
   "#3498DB", "#8E44AD", "#27AE60", "#95A5A6",
 ];
+
+export const AHORRO_COLORS = ["#A78BFA","#FBA1B7","#9EE6CF","#FFE4A1","#BFE3FF","#E8854A","#9B59B6","#2ECC71"];
