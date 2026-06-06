@@ -41,7 +41,7 @@ export function HomeView({
 
   return (
     <div className="fade-in">
-      <div style={{ background: `linear-gradient(135deg, ${C.card} 0%, ${C.hojaSoft} 100%)`, borderRadius: 28, padding: "22px 22px", marginTop: 16, position: "relative", overflow: "hidden", boxShadow: `0 10px 32px ${C.hoja}55` }}>
+      <div style={{ background: C.hojaSoft, borderRadius: 28, padding: "22px 22px", marginTop: 16, position: "relative", overflow: "hidden", boxShadow: `0 10px 32px ${C.hoja}55` }}>
         <div style={{ position: "relative", zIndex: 2 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, flexWrap: "wrap" }}>
             <p style={{ color: C.ink2, fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase", fontWeight: 800 }}>Balance del mes</p>
