@@ -11,11 +11,11 @@ const TABS = [
 
 export function BottomNav({ tab, onChange }) {
   return (
-    <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, background: C.card, borderRadius: "28px 28px 0 0", display: "flex", justifyContent: "space-around", alignItems: "center", paddingTop: 10, paddingBottom: "calc(env(safe-area-inset-bottom) + 10px)", paddingLeft: 8, paddingRight: 8, boxShadow: `0 -8px 30px ${C.lavanda}1A`, zIndex: 100 }}>
+    <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, background: C.card, borderRadius: "28px 28px 0 0", display: "flex", justifyContent: "space-around", alignItems: "center", paddingTop: 10, paddingBottom: "calc(env(safe-area-inset-bottom) + 10px)", paddingLeft: 8, paddingRight: 8, boxShadow: `0 -8px 30px ${C.hoja}26`, zIndex: 100 }}>
       {TABS.map((t) => {
         const active = tab === t.id;
         return (
-          <button key={t.id} onClick={() => onChange(t.id)} className="btn-pill" style={{ background: active ? `${C.lavanda}1A` : "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "6px 10px", borderRadius: 16, color: active ? C.lavanda : C.ink2 }}>
+          <button key={t.id} onClick={() => onChange(t.id)} className="btn-pill" style={{ background: active ? C.hojaSoft : "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "6px 10px", borderRadius: 16, color: active ? C.esmeralda : C.ink2 }}>
             <Icon name={t.icon} size={22} filled={active} weight={active ? 600 : 400} />
             <span style={{ fontSize: 10, fontWeight: active ? 800 : 600, fontFamily: "inherit" }}>{t.label}</span>
           </button>

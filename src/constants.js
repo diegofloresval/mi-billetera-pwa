@@ -1,38 +1,55 @@
 export const STORE_KEY = "billetera_data_v1";
 
 export const C = {
-  bg: "#FFF8F0",
-  card: "#FFFFFF",
-  ink: "#2D2438",
-  ink2: "#8B8299",
-  lavanda: "#A78BFA",
-  lavandaSoft: "#EDE5FE",
-  coral: "#FBA1B7",
+  // base
+  bg:        "#F8F6EE",
+  card:      "#FFFFFF",
+  ink:       "#1A3D2A",
+  ink2:      "#6B8A77",
+
+  // marca verde
+  esmeralda:     "#007A3D",
+  esmeraldaSoft: "#D9EFE2",
+  hoja:          "#73C653",
+  hojaSoft:      "#E3F4D6",
+  menta:         "#BEF8AD",
+  mentaSoft:     "#EBFAE4",
+
+  // único acento no-verde, sólo estados (gasto/danger)
+  coral:     "#FBA1B7",
   coralSoft: "#FEE5EC",
-  menta: "#9EE6CF",
-  mentaSoft: "#E0F7EE",
-  creme: "#FFE4A1",
-  cremeSoft: "#FFF3D1",
-  celeste: "#BFE3FF",
-  celesteSoft: "#E5F2FF",
+
+  // alias semánticos para texto
+  inkSuccess: "#007A3D",
+  inkOnHoja:  "#0F5C2C",
+  inkDanger:  "#A8324E",
+
+  // alias retrocompatible: muchos archivos siguen leyendo C.lavanda/C.creme/C.celeste.
+  // los mapeamos al nuevo lenguaje verde así no rompen mientras se migra cada archivo.
+  lavanda:     "#73C653",
+  lavandaSoft: "#E3F4D6",
+  creme:       "#BEF8AD",
+  cremeSoft:   "#EBFAE4",
+  celeste:     "#D9EFE2",
+  celesteSoft: "#EBFAE4",
 };
 
 export const CATS = [
-  { id: "supermercado", label: "Supermercado", emoji: "🛒", color: "#E8854A" },
-  { id: "transporte",   label: "Transporte",   emoji: "🚌", color: "#4A90D9" },
-  { id: "ocio",         label: "Ocio",         emoji: "🎮", color: "#9B59B6" },
-  { id: "salud",        label: "Salud",        emoji: "💊", color: "#2ECC71" },
-  { id: "ropa",         label: "Ropa",         emoji: "👟", color: "#E91E8C" },
-  { id: "casa",         label: "Casa",         emoji: "🏠", color: "#F39C12" },
-  { id: "educacion",    label: "Educación",    emoji: "📚", color: "#1ABC9C" },
-  { id: "restaurante",  label: "Restaurante",  emoji: "🍕", color: "#E74C3C" },
-  { id: "servicios",    label: "Servicios",    emoji: "💡", color: "#3498DB" },
-  { id: "suscripcion",  label: "Suscripción",  emoji: "📱", color: "#8E44AD" },
-  { id: "gym",          label: "Gym",          emoji: "🏋️", color: "#27AE60" },
-  { id: "otro",         label: "Otro",         emoji: "📦", color: "#95A5A6" },
+  { id: "supermercado", label: "Supermercado", emoji: "🛒", color: C.menta },
+  { id: "transporte",   label: "Transporte",   emoji: "🚌", color: C.menta },
+  { id: "ocio",         label: "Ocio",         emoji: "🎮", color: C.menta },
+  { id: "salud",        label: "Salud",        emoji: "💊", color: C.menta },
+  { id: "ropa",         label: "Ropa",         emoji: "👟", color: C.menta },
+  { id: "casa",         label: "Casa",         emoji: "🏠", color: C.menta },
+  { id: "educacion",    label: "Educación",    emoji: "📚", color: C.menta },
+  { id: "restaurante",  label: "Restaurante",  emoji: "🍕", color: C.menta },
+  { id: "servicios",    label: "Servicios",    emoji: "💡", color: C.menta },
+  { id: "suscripcion",  label: "Suscripción",  emoji: "📱", color: C.menta },
+  { id: "gym",          label: "Gym",          emoji: "🏋️", color: C.menta },
+  { id: "otro",         label: "Otro",         emoji: "📦", color: C.menta },
 ];
 
-export const AHORRO_CAT = { id: "ahorro", label: "Ahorro", emoji: "🐷", color: "#A78BFA" };
+export const AHORRO_CAT = { id: "ahorro", label: "Ahorro", emoji: "🐷", color: C.hoja };
 
 export const CAT = Object.fromEntries([...CATS, AHORRO_CAT].map((c) => [c.id, c]));
 
@@ -66,10 +83,14 @@ export const INITIAL_STATE = {
   aportes: [],
 };
 
+// Mantenido por compatibilidad con datos existentes; ya no se ofrece selector de color
+// al crear categorías custom. Todos los valores son verdes para mantener coherencia.
 export const CUSTOM_CAT_COLORS = [
-  "#E8854A", "#4A90D9", "#9B59B6", "#2ECC71",
-  "#E91E8C", "#F39C12", "#1ABC9C", "#E74C3C",
-  "#3498DB", "#8E44AD", "#27AE60", "#95A5A6",
+  C.menta, C.hoja, C.esmeraldaSoft, C.hojaSoft,
 ];
 
-export const AHORRO_COLORS = ["#A78BFA","#FBA1B7","#9EE6CF","#FFE4A1","#BFE3FF","#E8854A","#9B59B6","#2ECC71"];
+// 8 tonos verdes para las metas de ahorro
+export const AHORRO_COLORS = [
+  "#007A3D", "#1F8F4A", "#3FAA58", "#73C653",
+  "#9BD980", "#BEF8AD", "#D6F5BD", "#E3F4D6",
+];

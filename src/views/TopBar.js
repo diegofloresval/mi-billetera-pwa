@@ -11,12 +11,12 @@ const S = {
   actions: { display: "flex", gap: 10, flexShrink: 0 },
   actionsAligned: { display: "flex", gap: 10, flexShrink: 0, alignItems: "center" },
   circleBtnBase: { width: 42, height: 42, borderRadius: "50%", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
-  ingresoBtn: { width: 42, height: 42, borderRadius: "50%", border: "none", background: C.lavanda, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 16px ${C.lavanda}55` },
-  sueldoBtn: { width: 42, height: 42, borderRadius: "50%", border: "none", background: C.creme, color: C.ink, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 16px ${C.creme}88` },
-  searchBtn: { width: 42, height: 42, borderRadius: "50%", border: "none", background: C.lavanda, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 16px ${C.lavanda}55` },
-  avatar: { width: 42, height: 42, borderRadius: "50%", background: C.lavandaSoft, border: `2px solid ${C.lavanda}`, display: "flex", alignItems: "center", justifyContent: "center", color: "#6B46C1", fontWeight: 900, fontSize: 16 },
-  addFijoBtn: { flexShrink: 0, padding: "11px 18px", borderRadius: 99, border: "none", background: C.lavanda, color: "#fff", fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6, boxShadow: `0 6px 18px ${C.lavanda}55` },
-  settingsBtn: { width: 42, height: 42, borderRadius: "50%", border: "none", background: C.lavandaSoft, color: "#6B46C1", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
+  ingresoBtn: { width: 42, height: 42, borderRadius: "50%", border: "none", background: C.hoja, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 16px ${C.hoja}66` },
+  sueldoBtn: { width: 42, height: 42, borderRadius: "50%", border: "none", background: C.menta, color: C.inkOnHoja, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 16px ${C.menta}88` },
+  searchBtn: { width: 42, height: 42, borderRadius: "50%", border: "none", background: C.hoja, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 16px ${C.hoja}66` },
+  avatar: { width: 42, height: 42, borderRadius: "50%", background: C.hojaSoft, border: `2px solid ${C.hoja}`, display: "flex", alignItems: "center", justifyContent: "center", color: C.esmeralda, fontWeight: 900, fontSize: 16 },
+  addFijoBtn: { flexShrink: 0, padding: "11px 18px", borderRadius: 99, border: "none", background: C.hoja, color: "#fff", fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6, boxShadow: `0 6px 18px ${C.hoja}66` },
+  settingsBtn: { width: 42, height: 42, borderRadius: "50%", border: "none", background: C.hojaSoft, color: C.inkOnHoja, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
 };
 
 export function TopBar({ tab, nombre, cm, onAddIngreso, onAddSueldo, onAddFijo, onOpenAjustes }) {

@@ -11,13 +11,13 @@ export function PresupuestoView({ budgets, spentByCat, budgetEdit, setBudgetEdit
 
   return (
     <div className="fade-in" style={{ paddingTop: 8 }}>
-      <div style={{ background: C.lavanda, borderRadius: 24, padding: "18px 20px", marginBottom: 18, color: "#fff", boxShadow: `0 10px 28px ${C.lavanda}55` }}>
+      <div style={{ background: C.esmeralda, borderRadius: 24, padding: "18px 20px", marginBottom: 18, color: "#fff", boxShadow: `0 10px 28px ${C.esmeralda}66` }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
             <p style={{ fontSize: 11, fontWeight: 700, opacity: 0.85, textTransform: "uppercase", letterSpacing: 1 }}>Total gastado</p>
             <p style={{ fontSize: 26, fontWeight: 900, marginTop: 4, fontVariantNumeric: "tabular-nums" }}>{fmt(totalSpent)}</p>
           </div>
-          <span style={{ background: C.mentaSoft, color: "#1F8C5B", borderRadius: 99, padding: "5px 12px", fontSize: 11, fontWeight: 800 }}>queda {fmt(queda)}</span>
+          <span style={{ background: C.menta, color: C.inkOnHoja, borderRadius: 99, padding: "5px 12px", fontSize: 11, fontWeight: 800 }}>queda {fmt(queda)}</span>
         </div>
         <div style={{ height: 8, borderRadius: 99, background: "rgba(255,255,255,.25)", overflow: "hidden", marginTop: 12 }}>
           <div style={{ height: "100%", width: `${pct}%`, background: "#fff", borderRadius: 99 }} />
@@ -35,19 +35,19 @@ export function PresupuestoView({ budgets, spentByCat, budgetEdit, setBudgetEdit
           const over = budget > 0 && spent > budget;
           const editing = budgetEdit === c.id;
           return (
-            <div key={c.id} style={{ background: C.card, borderRadius: 20, padding: "14px 14px 12px", cursor: "pointer", border: editing ? `2px solid ${C.lavanda}` : "2px solid transparent", boxShadow: `0 4px 14px ${C.lavanda}0E` }} onClick={() => setBudgetEdit(editing ? null : c.id)}>
+            <div key={c.id} style={{ background: C.card, borderRadius: 20, padding: "14px 14px 12px", cursor: "pointer", border: editing ? `2px solid ${C.hoja}` : "2px solid transparent", boxShadow: `0 4px 14px ${C.hoja}1A` }} onClick={() => setBudgetEdit(editing ? null : c.id)}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div style={{ width: 36, height: 36, borderRadius: "50%", background: `${c.color}26`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>{c.emoji}</div>
-                <span style={{ fontSize: 9, fontWeight: 800, background: over ? C.coralSoft : budget > 0 ? C.mentaSoft : "#F0F0F8", color: over ? "#D4587E" : budget > 0 ? "#1F8C5B" : C.ink2, borderRadius: 99, padding: "3px 8px" }}>{over ? "⚠️ Excedido" : budget > 0 ? `queda ${fmt(budget - spent)}` : "sin límite"}</span>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: C.mentaSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>{c.emoji}</div>
+                <span style={{ fontSize: 9, fontWeight: 800, background: over ? C.coralSoft : budget > 0 ? C.mentaSoft : C.hojaSoft, color: over ? C.inkDanger : budget > 0 ? C.inkSuccess : C.ink2, borderRadius: 99, padding: "3px 8px" }}>{over ? "⚠️ Excedido" : budget > 0 ? `queda ${fmt(budget - spent)}` : "sin límite"}</span>
               </div>
               <p style={{ fontWeight: 800, fontSize: 13, color: C.ink, marginTop: 10 }}>{c.label}</p>
               <p style={{ fontWeight: 900, fontSize: 15, color: C.ink, fontVariantNumeric: "tabular-nums" }}>{fmt(spent)}</p>
-              <Bar spent={spent} budget={budget} color={c.color} />
+              <Bar spent={spent} budget={budget} color={C.hoja} />
               {editing && (
                 <div style={{ marginTop: 10 }} onClick={(e) => e.stopPropagation()}>
                   <BudgetInput
                     initial={budget}
-                    color={c.color}
+                    color={C.hoja}
                     onSave={(n) => onSaveBudget(c.id, n)}
                     onCancel={() => setBudgetEdit(null)}
                   />

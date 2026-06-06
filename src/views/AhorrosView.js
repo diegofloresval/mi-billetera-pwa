@@ -28,21 +28,21 @@ export function AhorrosView({ ahorros = [], aportes = [], onOpenModal, onAportar
 
   return (
     <div className="fade-in" style={{ paddingTop: 8 }}>
-      <div style={{ background: `${C.lavanda}1F`, borderRadius: 26, padding: "20px 20px", marginBottom: 22, textAlign: "center" }}>
+      <div style={{ background: C.hojaSoft, borderRadius: 26, padding: "20px 20px", marginBottom: 22, textAlign: "center" }}>
         <p style={{ fontSize: 12, color: C.ink2, fontWeight: 700, marginBottom: 4 }}>🐷 Mis ahorros</p>
         {currencies.length === 0 && (
-          <p style={{ fontWeight: 900, fontSize: 34, color: C.lavanda, fontVariantNumeric: "tabular-nums", letterSpacing: -1 }}>{fmt(0)}</p>
+          <p style={{ fontWeight: 900, fontSize: 34, color: C.esmeralda, fontVariantNumeric: "tabular-nums", letterSpacing: -1 }}>{fmt(0)}</p>
         )}
         {currencies.map((cur) => (
-          <p key={cur} style={{ fontWeight: 900, fontSize: 30, color: C.lavanda, fontVariantNumeric: "tabular-nums", letterSpacing: -1, lineHeight: 1.15 }}>
+          <p key={cur} style={{ fontWeight: 900, fontSize: 30, color: C.esmeralda, fontVariantNumeric: "tabular-nums", letterSpacing: -1, lineHeight: 1.15 }}>
             {fmt(byCurrency[cur].actual, cur)}
             <span style={{ fontSize: 13, color: C.ink2, fontWeight: 700 }}> de {fmt(byCurrency[cur].meta, cur)}</span>
           </p>
         ))}
         {totalMetaGlobal > 0 && (
           <>
-            <div style={{ marginTop: 14, height: 10, borderRadius: 99, background: `${C.lavanda}26`, overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${pctGlobal}%`, background: C.lavanda, borderRadius: 99, transition: "width .5s" }} />
+            <div style={{ marginTop: 14, height: 10, borderRadius: 99, background: `${C.esmeralda}26`, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${pctGlobal}%`, background: C.esmeralda, borderRadius: 99, transition: "width .5s" }} />
             </div>
             <p style={{ fontSize: 11, color: C.ink2, fontWeight: 800, marginTop: 8, letterSpacing: 0.5 }}>{pctGlobal}% de tus metas</p>
           </>
@@ -52,7 +52,7 @@ export function AhorrosView({ ahorros = [], aportes = [], onOpenModal, onAportar
       {ahorros.length > 0 && (
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
           <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, letterSpacing: 1.5, textTransform: "uppercase" }}>Tus metas</p>
-          <p style={{ fontSize: 12, fontWeight: 800, color: C.lavanda }}>{ahorros.length} {ahorros.length === 1 ? "meta" : "metas"}</p>
+          <p style={{ fontSize: 12, fontWeight: 800, color: C.esmeralda }}>{ahorros.length} {ahorros.length === 1 ? "meta" : "metas"}</p>
         </div>
       )}
 
@@ -68,7 +68,7 @@ export function AhorrosView({ ahorros = [], aportes = [], onOpenModal, onAportar
                 <p style={{ fontSize: 11, color: C.ink2, fontWeight: 700, marginTop: 2 }}>Meta {fmt(a.meta, a.currency)}</p>
               </div>
               {completa && (
-                <span style={{ fontSize: 10, background: `${C.menta}55`, color: "#057857", borderRadius: 99, padding: "4px 10px", fontWeight: 900, textTransform: "uppercase", letterSpacing: 0.5, flexShrink: 0 }}>✓ Listo</span>
+                <span style={{ fontSize: 10, background: C.mentaSoft, color: C.inkSuccess, borderRadius: 99, padding: "4px 10px", fontWeight: 900, textTransform: "uppercase", letterSpacing: 0.5, flexShrink: 0 }}>✓ Listo</span>
               )}
             </div>
 
@@ -80,14 +80,14 @@ export function AhorrosView({ ahorros = [], aportes = [], onOpenModal, onAportar
               <p style={{ fontSize: 12, color: a.color, fontWeight: 900 }}>{pct}%</p>
             </div>
 
-            <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.lavanda}1A`, display: "flex", gap: 8 }}>
-              <button onClick={() => onOpenModal(a)} style={{ flex: 1, padding: "10px 0", borderRadius: 99, border: "none", background: `${C.lavanda}1A`, color: "#6B46C1", fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+            <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.hoja}26`, display: "flex", gap: 8 }}>
+              <button onClick={() => onOpenModal(a)} style={{ flex: 1, padding: "10px 0", borderRadius: 99, border: "none", background: C.hojaSoft, color: C.inkOnHoja, fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
                 ✏️ Editar
               </button>
-              <button onClick={() => setAportarId(a.id)} style={{ flex: 1.3, padding: "10px 0", borderRadius: 99, border: "none", background: `${C.menta}40`, color: "#057857", fontWeight: 900, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+              <button onClick={() => setAportarId(a.id)} style={{ flex: 1.3, padding: "10px 0", borderRadius: 99, border: "none", background: C.mentaSoft, color: C.inkSuccess, fontWeight: 900, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
                 + Aportar
               </button>
-              <button aria-label="Eliminar" onClick={() => onDelAhorro(a.id)} style={{ width: 44, padding: "10px 0", borderRadius: 99, border: "none", background: `${C.coral}33`, color: "#D4587E", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <button aria-label="Eliminar" onClick={() => onDelAhorro(a.id)} style={{ width: 44, padding: "10px 0", borderRadius: 99, border: "none", background: C.coralSoft, color: C.inkDanger, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 🗑️
               </button>
             </div>
@@ -100,7 +100,7 @@ export function AhorrosView({ ahorros = [], aportes = [], onOpenModal, onAportar
           <p style={{ fontSize: 56, marginBottom: 10 }}>🐷</p>
           <p style={{ color: C.ink, fontWeight: 800, fontSize: 16, marginBottom: 6 }}>Aún no tenés metas de ahorro</p>
           <p style={{ color: C.ink2, fontSize: 13, marginBottom: 20 }}>Creá tu primera meta y empezá a ahorrar para lo que quieras.</p>
-          <button onClick={() => onOpenModal(null)} style={{ padding: "12px 22px", borderRadius: 99, border: "none", background: C.lavanda, color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 8px 20px ${C.lavanda}55` }}>
+          <button onClick={() => onOpenModal(null)} style={{ padding: "12px 22px", borderRadius: 99, border: "none", background: C.hoja, color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 8px 20px ${C.hoja}66` }}>
             + Crear meta
           </button>
         </div>
@@ -110,14 +110,14 @@ export function AhorrosView({ ahorros = [], aportes = [], onOpenModal, onAportar
         const a = ahorros.find((x) => x.id === aportarId);
         if (!a) return null;
         return (
-          <div style={{ position: "fixed", inset: 0, background: "rgba(45,36,56,.45)", zIndex: 250, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={closeAportar}>
+          <div style={{ position: "fixed", inset: 0, background: "rgba(26,61,42,.55)", zIndex: 250, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={closeAportar}>
             <div className="fade-in" style={{ width: "100%", maxWidth: 360, background: C.card, borderRadius: 26, padding: "24px 22px" }} onClick={(e) => e.stopPropagation()}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                 <p style={{ fontWeight: 800, fontSize: 17, color: C.ink }}>{a.emoji} Aportar a {a.nombre}</p>
                 <button onClick={closeAportar} aria-label="Cerrar" style={{ border: "none", background: "transparent", color: C.ink2, fontSize: 20, cursor: "pointer", padding: 4, fontFamily: "inherit", lineHeight: 1 }}>✕</button>
               </div>
               <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>Monto ({a.currency || "ARS"})</p>
-              <input autoFocus type="number" placeholder="0" value={aportarMonto} onChange={(e) => setAportarMonto(e.target.value)} style={{ width: "100%", border: `1.5px solid ${C.lavandaSoft}`, borderRadius: 16, padding: "14px 16px", fontSize: 18, color: C.ink, fontFamily: "inherit", background: C.card, marginBottom: 16, fontWeight: 800 }} />
+              <input autoFocus type="number" placeholder="0" value={aportarMonto} onChange={(e) => setAportarMonto(e.target.value)} style={{ width: "100%", border: `1.5px solid ${C.hojaSoft}`, borderRadius: 16, padding: "14px 16px", fontSize: 18, color: C.ink, fontFamily: "inherit", background: C.card, marginBottom: 16, fontWeight: 800 }} />
               <button onClick={confirmAportar} style={{ width: "100%", padding: 14, borderRadius: 16, border: "none", background: a.color, color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 6px 16px ${a.color}66` }}>
                 Confirmar aporte
               </button>

@@ -295,7 +295,7 @@ export default function App() {
         @keyframes slideUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:none}}
         @keyframes fadeIn{from{opacity:0}to{opacity:1}}
         @keyframes toast{0%{opacity:0;transform:translateY(10px) scale(.9)}10%{opacity:1;transform:none}90%{opacity:1}100%{opacity:0;transform:translateY(-6px)}}
-        .tx-row:active{background:${C.lavandaSoft} !important;}
+        .tx-row:active{background:${C.hojaSoft} !important;}
         .btn-pill{transition:all .18s;cursor:pointer;}
         .btn-pill:active{transform:scale(.95);}
       `}</style>
