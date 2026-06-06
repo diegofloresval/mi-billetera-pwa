@@ -1,23 +1,75 @@
+import { useState } from "react";
 import { C, CAT } from "../constants";
 import { fmt, cuotaLabel } from "../helpers";
 import { Icon } from "../components/Icon";
 import { AnimNumber } from "../components/AnimNumber";
 
-export function HomeView({ balance, sueldo, totalFijos, totalIngresos, totalGastos, activosFijos, top5, txs, mthInfo, onGoMovimientos, onGoFijos, onEditTx }) {
+const TOGGLE_WRAP = { display: "inline-flex", background: C.bg, borderRadius: 99, padding: 3, gap: 2 };
+const TOGGLE_BTN = (active, disabled) => ({
+  border: "none",
+  background: active ? C.lavanda : "transparent",
+  color: active ? "#fff" : (disabled ? `${C.ink2}88` : C.ink),
+  fontWeight: 800,
+  fontSize: 11,
+  padding: "6px 12px",
+  borderRadius: 99,
+  cursor: disabled ? "not-allowed" : "pointer",
+  fontFamily: "inherit",
+  opacity: disabled ? 0.6 : 1,
+  transition: "all .18s",
+});
+
+export function HomeView({
+  balance, sueldo, totalFijos, totalIngresos, totalGastos,
+  totalsByCurrency, totalsUnifiedARS, fxRate,
+  activosFijos, top5, txs, mthInfo, onGoMovimientos, onGoFijos, onEditTx,
+}) {
+  const [viewMode, setViewMode] = useState("split");
+
+  const byC = totalsByCurrency || { ARS: { ingresos: totalIngresos, gastos: totalGastos, fijos: totalFijos }, USD: { ingresos: 0, gastos: 0, fijos: 0 } };
+  const hasUSD = byC.USD.ingresos > 0 || byC.USD.gastos > 0;
+  const unifiedAvailable = !!totalsUnifiedARS;
+  const showToggle = hasUSD;
+  const effectiveMode = viewMode === "unified" && !unifiedAvailable ? "split" : viewMode;
+
+  const ingDisplayARS = effectiveMode === "unified" && totalsUnifiedARS ? totalsUnifiedARS.ingresos : byC.ARS.ingresos;
+  const gstDisplayARS = effectiveMode === "unified" && totalsUnifiedARS ? totalsUnifiedARS.gastos : byC.ARS.gastos;
+  const fjsDisplayARS = effectiveMode === "unified" && totalsUnifiedARS ? totalsUnifiedARS.fijos : byC.ARS.fijos;
+  const showUSDRow = effectiveMode === "split" && hasUSD;
+
   return (
     <div className="fade-in">
       <div style={{ background: C.card, borderRadius: 28, padding: "22px 22px", marginTop: 16, position: "relative", overflow: "hidden", boxShadow: `0 10px 32px ${C.lavanda}26` }}>
         <div style={{ position: "relative", zIndex: 2 }}>
-          <p style={{ color: C.ink2, fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase", fontWeight: 800 }}>Balance del mes</p>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, flexWrap: "wrap" }}>
+            <p style={{ color: C.ink2, fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase", fontWeight: 800 }}>Balance del mes</p>
+            {showToggle && (
+              <div style={TOGGLE_WRAP}>
+                <button onClick={() => setViewMode("split")} style={TOGGLE_BTN(effectiveMode === "split", false)}>Por moneda</button>
+                <button
+                  onClick={() => unifiedAvailable && setViewMode("unified")}
+                  disabled={!unifiedAvailable}
+                  style={TOGGLE_BTN(effectiveMode === "unified", !unifiedAvailable)}
+                  title={!unifiedAvailable ? "Definí el tipo de cambio en Ajustes" : ""}
+                >Unificado ARS</button>
+              </div>
+            )}
+          </div>
           <AnimNumber value={balance} style={{ display: "block", fontSize: 40, fontWeight: 900, color: C.ink, marginTop: 6, letterSpacing: -1, fontVariantNumeric: "tabular-nums" }} />
           <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: `${C.menta}33`, color: C.ink, borderRadius: 99, padding: "5px 12px", fontSize: 11, fontWeight: 800, border: `1px solid ${C.menta}55` }}>
               <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#34D399" }} /> Sueldo {fmt(sueldo)}
             </span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: `${C.coral}33`, color: C.ink, borderRadius: 99, padding: "5px 12px", fontSize: 11, fontWeight: 800, border: `1px solid ${C.coral}55` }}>
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#F87171" }} /> Fijos {fmt(totalFijos)}
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#F87171" }} /> Fijos {fmt(fjsDisplayARS)}{showUSDRow && byC.USD.fijos > 0 ? ` · ${fmt(byC.USD.fijos, "USD")}` : ""}
             </span>
           </div>
+          {showToggle && !unifiedAvailable && (
+            <p style={{ fontSize: 10, color: C.ink2, marginTop: 10, fontWeight: 600 }}>Definí el tipo de cambio en Ajustes para unificar.</p>
+          )}
+          {effectiveMode === "unified" && fxRate && fxRate.USD_ARS > 0 && (
+            <p style={{ fontSize: 10, color: C.ink2, marginTop: 10, fontWeight: 600 }}>USD convertido a {fmt(fxRate.USD_ARS)} / US$1</p>
+          )}
         </div>
         <div style={{ position: "absolute", right: -8, bottom: -16, opacity: 0.18, pointerEvents: "none", zIndex: 1 }}>
           <Icon name="eco" size={120} filled weight={400} color={C.lavanda} />
@@ -34,7 +86,10 @@ export function HomeView({ balance, sueldo, totalFijos, totalIngresos, totalGast
           </div>
           <div>
             <p style={{ color: "rgba(45,36,56,.6)", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5 }}>Ingresos</p>
-            <p style={{ color: C.ink, fontWeight: 900, fontSize: 17, fontVariantNumeric: "tabular-nums", marginTop: 2 }}>{fmt(totalIngresos)}</p>
+            <p style={{ color: C.ink, fontWeight: 900, fontSize: 17, fontVariantNumeric: "tabular-nums", marginTop: 2 }}>{fmt(ingDisplayARS)}</p>
+            {showUSDRow && byC.USD.ingresos > 0 && (
+              <p style={{ color: C.ink, fontWeight: 800, fontSize: 12, fontVariantNumeric: "tabular-nums", marginTop: 2, opacity: 0.75 }}>{fmt(byC.USD.ingresos, "USD")}</p>
+            )}
           </div>
         </div>
         <div style={{ background: C.coral, borderRadius: 24, padding: "18px 18px", display: "flex", flexDirection: "column", gap: 12, boxShadow: `0 8px 22px ${C.coral}55` }}>
@@ -43,7 +98,10 @@ export function HomeView({ balance, sueldo, totalFijos, totalIngresos, totalGast
           </div>
           <div>
             <p style={{ color: "rgba(45,36,56,.6)", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5 }}>Gastos</p>
-            <p style={{ color: C.ink, fontWeight: 900, fontSize: 17, fontVariantNumeric: "tabular-nums", marginTop: 2 }}>{fmt(totalGastos)}</p>
+            <p style={{ color: C.ink, fontWeight: 900, fontSize: 17, fontVariantNumeric: "tabular-nums", marginTop: 2 }}>{fmt(gstDisplayARS)}</p>
+            {showUSDRow && byC.USD.gastos > 0 && (
+              <p style={{ color: C.ink, fontWeight: 800, fontSize: 12, fontVariantNumeric: "tabular-nums", marginTop: 2, opacity: 0.75 }}>{fmt(byC.USD.gastos, "USD")}</p>
+            )}
           </div>
         </div>
       </div>
@@ -65,7 +123,7 @@ export function HomeView({ balance, sueldo, totalFijos, totalIngresos, totalGast
                     {f.tipo === "cuotas" ? `⏳ ${cuotaLabel(f)}` : "🔄 Mensual"}
                   </span>
                 </div>
-                <p style={{ fontWeight: 900, fontSize: 15, color: "#D4587E", fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>-{fmt(f.monto)}</p>
+                <p style={{ fontWeight: 900, fontSize: 15, color: "#D4587E", fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>-{fmt(f.monto, f.currency || "ARS")}</p>
               </div>
             );
           })}
@@ -113,7 +171,7 @@ export function HomeView({ balance, sueldo, totalFijos, totalIngresos, totalGast
                     <p style={{ fontWeight: 800, fontSize: 14, color: C.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tx.desc}</p>
                     <p style={{ fontSize: 11, color: C.ink2, marginTop: 2, fontWeight: 500 }}>{tx.fecha} · {mth.icon} {mth.label}</p>
                   </div>
-                  <p style={{ fontWeight: 900, fontSize: 15, color: tx.type === "ingreso" ? "#059669" : C.ink, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>{tx.type === "ingreso" ? "+" : "-"}{fmt(tx.monto)}</p>
+                  <p style={{ fontWeight: 900, fontSize: 15, color: tx.type === "ingreso" ? "#059669" : C.ink, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>{tx.type === "ingreso" ? "+" : "-"}{fmt(tx.monto, tx.currency || "ARS")}</p>
                 </div>
               );
             })}

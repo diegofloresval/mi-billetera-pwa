@@ -7,7 +7,7 @@ const SEARCH_WRAP = { position: "relative", marginBottom: 12 };
 const SEARCH_ICON = { position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 14, pointerEvents: "none" };
 const SEARCH_INPUT = { width: "100%", boxSizing: "border-box", padding: "11px 14px 11px 38px", borderRadius: 99, border: `1.5px solid ${C.lavandaSoft}`, background: C.card, color: C.ink, fontSize: 14, fontFamily: "inherit", outline: "none", boxShadow: `0 2px 8px ${C.lavanda}10` };
 
-export function MovimientosView({ mesesDisponibles, movMes, setMovMes, ingMovMes, gstMovMes, txsMes, mthInfo, onEditTx, onDelTx }) {
+export function MovimientosView({ mesesDisponibles, movMes, setMovMes, ingMovMesARS, gstMovMesARS, ingMovMesUSD, gstMovMesUSD, txsMes, mthInfo, onEditTx, onDelTx }) {
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -46,12 +46,18 @@ export function MovimientosView({ mesesDisponibles, movMes, setMovMes, ingMovMes
       <div style={{ background: C.card, borderRadius: 20, padding: "14px 16px", marginBottom: 14, display: "flex", boxShadow: `0 4px 16px ${C.lavanda}10` }}>
         <div style={{ flex: 1, textAlign: "center" }}>
           <p style={{ fontSize: 10, color: C.ink2, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>Ingresos</p>
-          <p style={{ fontWeight: 900, fontSize: 17, color: "#1F8C5B", marginTop: 4, fontVariantNumeric: "tabular-nums" }}>{fmt(ingMovMes)}</p>
+          <p style={{ fontWeight: 900, fontSize: 17, color: "#1F8C5B", marginTop: 4, fontVariantNumeric: "tabular-nums" }}>{fmt(ingMovMesARS, "ARS")}</p>
+          {ingMovMesUSD > 0 && (
+            <p style={{ fontWeight: 800, fontSize: 12, color: "#1F8C5B", marginTop: 2, fontVariantNumeric: "tabular-nums", opacity: 0.85 }}>{fmt(ingMovMesUSD, "USD")}</p>
+          )}
         </div>
         <div style={{ width: 1, background: C.lavandaSoft, margin: "0 8px" }} />
         <div style={{ flex: 1, textAlign: "center" }}>
           <p style={{ fontSize: 10, color: C.ink2, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>Gastos</p>
-          <p style={{ fontWeight: 900, fontSize: 17, color: "#D4587E", marginTop: 4, fontVariantNumeric: "tabular-nums" }}>{fmt(gstMovMes)}</p>
+          <p style={{ fontWeight: 900, fontSize: 17, color: "#D4587E", marginTop: 4, fontVariantNumeric: "tabular-nums" }}>{fmt(gstMovMesARS, "ARS")}</p>
+          {gstMovMesUSD > 0 && (
+            <p style={{ fontWeight: 800, fontSize: 12, color: "#D4587E", marginTop: 2, fontVariantNumeric: "tabular-nums", opacity: 0.85 }}>{fmt(gstMovMesUSD, "USD")}</p>
+          )}
         </div>
       </div>
 
@@ -73,7 +79,7 @@ export function MovimientosView({ mesesDisponibles, movMes, setMovMes, ingMovMes
               </div>
             </div>
             <div style={{ textAlign: "right", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
-              <p style={{ fontWeight: 900, fontSize: 16, color: tx.type === "ingreso" ? "#059669" : C.ink, fontVariantNumeric: "tabular-nums" }}>{tx.type === "ingreso" ? "+" : "-"}{fmt(tx.monto)}</p>
+              <p style={{ fontWeight: 900, fontSize: 16, color: tx.type === "ingreso" ? "#059669" : C.ink, fontVariantNumeric: "tabular-nums" }}>{tx.type === "ingreso" ? "+" : "-"}{fmt(tx.monto, tx.currency || "ARS")}</p>
               <button aria-label="Eliminar" onClick={(e) => { e.stopPropagation(); onDelTx(tx.id); }} style={{ background: "none", border: "none", cursor: "pointer", color: `${C.ink2}88`, padding: 2, display: "flex" }}>
                 <Icon name="delete" size={16} />
               </button>

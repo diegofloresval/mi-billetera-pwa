@@ -1,4 +1,4 @@
-import { C, CATS, METHODS } from "../constants";
+import { C, CATS, METHODS, CURRENCIES } from "../constants";
 
 const inp = (extra = {}) => ({
   style: { width: "100%", border: `1.5px solid ${C.lavandaSoft}`, borderRadius: 16, padding: "14px 16px", fontSize: 15, color: C.ink, fontFamily: "inherit", background: C.card, marginBottom: 10, ...extra.style },
@@ -17,6 +17,15 @@ export function FijoModal({ fijoForm, setFijoForm, editFijoId, customCats = [], 
         </div>
         <input placeholder="Nombre (ej: Gym, Celular, Spotify…)" value={fijoForm.desc} onChange={(e) => setFijoForm({ ...fijoForm, desc: e.target.value })} {...inp()} />
         <input placeholder="Monto mensual / por cuota $" type="number" value={fijoForm.monto} onChange={(e) => setFijoForm({ ...fijoForm, monto: e.target.value })} {...inp()} />
+        <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>Moneda</p>
+        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+          {CURRENCIES.map((cur) => {
+            const active = (fijoForm.currency || "ARS") === cur.id;
+            return (
+              <button key={cur.id} className="btn-pill" onClick={() => setFijoForm({ ...fijoForm, currency: cur.id })} style={{ flex: 1, padding: "10px 14px", borderRadius: 99, border: "none", background: active ? C.lavanda : C.lavandaSoft, color: active ? "#fff" : C.ink, fontSize: 13, fontWeight: 800, fontFamily: "inherit", cursor: "pointer" }}>{cur.symbol} {cur.id}</button>
+            );
+          })}
+        </div>
         <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>Tipo</p>
         <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
           {[{ id: "mensual", label: "🔄 Mensual" }, { id: "cuotas", label: "⏳ Cuotas" }].map((t) => (

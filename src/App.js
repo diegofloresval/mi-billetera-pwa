@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { C, CATS, METHODS } from "./constants";
 import {
   uid, today, currentMonth, monthOf,
-  isInMonth, fijoActivoEsteMes, sanitizeState,
+  isInMonth, fijoActivoEsteMes, sanitizeState, toARS,
 } from "./helpers";
 import { useWallet } from "./useWallet";
 import { TxModal } from "./components/TxModal";
@@ -24,8 +24,8 @@ export default function App() {
   const [modalType, setModalType] = useState("gasto");
   const [showFijoModal, setShowFijoModal] = useState(false);
   const [editFijoId, setEditFijoId] = useState(null);
-  const [form, setForm] = useState({ desc: "", monto: "", cat: "supermercado", fecha: today(), method: "debito" });
-  const [fijoForm, setFijoForm] = useState({ desc: "", monto: "", cat: "gym", method: "debito", tipo: "mensual", hastaFecha: "", cuotasTotales: 6, desde: currentMonth() });
+  const [form, setForm] = useState({ desc: "", monto: "", cat: "supermercado", fecha: today(), method: "debito", currency: "ARS" });
+  const [fijoForm, setFijoForm] = useState({ desc: "", monto: "", cat: "gym", method: "debito", tipo: "mensual", hastaFecha: "", cuotasTotales: 6, desde: currentMonth(), currency: "ARS" });
   const [editId, setEditId] = useState(null);
   const [toast, setToast] = useState(null);
   const [budgetEdit, setBudgetEdit] = useState(null);
@@ -34,7 +34,7 @@ export default function App() {
   const [movMes, setMovMes] = useState(currentMonth());
   const fileInputRef = useRef(null);
 
-  const { txs, fijos, budgets, sueldo, nombre, customCats = [] } = state;
+  const { txs, fijos, budgets, sueldo, nombre, customCats = [], fxRate = { USD_ARS: 0, updatedAt: null } } = state;
 
   useEffect(() => { onQuotaError((msg) => showToast(msg)); }, [onQuotaError]);
   useEffect(() => { onLoadWarning((msg) => showToast(msg)); }, [onLoadWarning]);
@@ -48,10 +48,44 @@ export default function App() {
   const cm = currentMonth();
   const gastosMes = useMemo(() => txs.filter((t) => t.type === "gasto" && isInMonth(t.fecha, cm)), [txs, cm]);
   const ingresosMes = useMemo(() => txs.filter((t) => t.type === "ingreso" && isInMonth(t.fecha, cm)), [txs, cm]);
-  const totalFijos = useMemo(() => fijos.filter((f) => fijoActivoEsteMes(f, cm)).reduce((a, f) => a + f.monto, 0), [fijos, cm]);
-  const totalGastos = gastosMes.reduce((a, t) => a + t.monto, 0) + totalFijos;
-  const totalIngresos = ingresosMes.reduce((a, t) => a + t.monto, 0) + sueldo;
+  const fijosMes = useMemo(() => fijos.filter((f) => fijoActivoEsteMes(f, cm)), [fijos, cm]);
+  // Backward-compat: balance/totales en ARS (excluye USD)
+  const totalFijos = useMemo(() => fijosMes.filter((f) => (f.currency || "ARS") === "ARS").reduce((a, f) => a + f.monto, 0), [fijosMes]);
+  const totalGastos = gastosMes.filter((t) => (t.currency || "ARS") === "ARS").reduce((a, t) => a + t.monto, 0) + totalFijos;
+  const totalIngresos = ingresosMes.filter((t) => (t.currency || "ARS") === "ARS").reduce((a, t) => a + t.monto, 0) + sueldo;
   const balance = totalIngresos - totalGastos;
+
+  // Totales separados por moneda
+  const totalsByCurrency = useMemo(() => {
+    const sumBy = (arr, cur) => arr.filter((x) => (x.currency || "ARS") === cur).reduce((a, x) => a + x.monto, 0);
+    return {
+      ARS: {
+        ingresos: sumBy(ingresosMes, "ARS") + sueldo,
+        gastos: sumBy(gastosMes, "ARS") + sumBy(fijosMes, "ARS"),
+        fijos: sumBy(fijosMes, "ARS"),
+      },
+      USD: {
+        ingresos: sumBy(ingresosMes, "USD"),
+        gastos: sumBy(gastosMes, "USD") + sumBy(fijosMes, "USD"),
+        fijos: sumBy(fijosMes, "USD"),
+      },
+    };
+  }, [ingresosMes, gastosMes, fijosMes, sueldo]);
+
+  // Totales unificados en ARS (null si hay USD y falta fxRate)
+  const totalsUnifiedARS = useMemo(() => {
+    const hasUSD = totalsByCurrency.USD.ingresos > 0 || totalsByCurrency.USD.gastos > 0;
+    if (hasUSD && !fxRate.USD_ARS) return null;
+    const conv = (n) => {
+      const v = toARS(n, "USD", fxRate);
+      return v == null ? 0 : v;
+    };
+    return {
+      ingresos: totalsByCurrency.ARS.ingresos + conv(totalsByCurrency.USD.ingresos),
+      gastos: totalsByCurrency.ARS.gastos + conv(totalsByCurrency.USD.gastos),
+      fijos: totalsByCurrency.ARS.fijos + conv(totalsByCurrency.USD.fijos),
+    };
+  }, [totalsByCurrency, fxRate]);
 
   const spentByCatMap = useMemo(() => {
     const m = {};
@@ -85,14 +119,14 @@ export default function App() {
 
   const openModal = (type) => {
     setModalType(type); setEditId(null);
-    setForm({ desc: "", monto: "", cat: "supermercado", fecha: today(), method: "debito" });
+    setForm({ desc: "", monto: "", cat: "supermercado", fecha: today(), method: "debito", currency: "ARS" });
     setShowModal(true);
   };
 
   const submit = () => {
     if (!form.monto || Number(form.monto) <= 0) return;
     if (modalType === "sueldo") { upd({ sueldo: Number(form.monto) }); showToast("Sueldo actualizado ✓"); setShowModal(false); return; }
-    const base = { ...form, monto: Number(form.monto), id: editId || uid(), type: modalType === "ingreso" ? "ingreso" : "gasto" };
+    const base = { ...form, monto: Number(form.monto), id: editId || uid(), type: modalType === "ingreso" ? "ingreso" : "gasto", currency: form.currency || "ARS" };
     if (modalType === "ingreso") { base.cat = "ingreso"; base.desc = base.desc || "Ingreso"; }
     if (editId) { upd({ txs: txs.map((x) => (x.id === editId ? base : x)) }); showToast("Actualizado ✓"); }
     else { upd({ txs: [base, ...txs] }); showToast(modalType === "ingreso" ? "Ingreso agregado ✓" : "Gasto agregado ✓"); }
@@ -111,20 +145,20 @@ export default function App() {
 
   const startEdit = (tx) => {
     setEditId(tx.id); setModalType(tx.type === "ingreso" ? "ingreso" : "gasto");
-    setForm({ desc: tx.desc, monto: String(tx.monto), cat: tx.cat, fecha: tx.fecha, method: tx.method || "debito" });
+    setForm({ desc: tx.desc, monto: String(tx.monto), cat: tx.cat, fecha: tx.fecha, method: tx.method || "debito", currency: tx.currency || "ARS" });
     setShowModal(true);
   };
 
   const openFijoModal = (f = null) => {
     setEditFijoId(f ? f.id : null);
-    setFijoForm(f ? { desc: f.desc, monto: String(f.monto), cat: f.cat, method: f.method, tipo: f.tipo, hastaFecha: f.hastaFecha || "", cuotasTotales: f.cuotasTotales || 6, desde: f.desde || currentMonth() }
-      : { desc: "", monto: "", cat: "gym", method: "debito", tipo: "mensual", hastaFecha: "", cuotasTotales: 6, desde: currentMonth() });
+    setFijoForm(f ? { desc: f.desc, monto: String(f.monto), cat: f.cat, method: f.method, tipo: f.tipo, hastaFecha: f.hastaFecha || "", cuotasTotales: f.cuotasTotales || 6, desde: f.desde || currentMonth(), currency: f.currency || "ARS" }
+      : { desc: "", monto: "", cat: "gym", method: "debito", tipo: "mensual", hastaFecha: "", cuotasTotales: 6, desde: currentMonth(), currency: "ARS" });
     setShowFijoModal(true);
   };
 
   const submitFijo = () => {
     if (!fijoForm.monto || !fijoForm.desc || Number(fijoForm.monto) <= 0) return;
-    const base = { desc: fijoForm.desc, monto: Number(fijoForm.monto), cat: fijoForm.cat, method: fijoForm.method, tipo: fijoForm.tipo, activo: true,
+    const base = { desc: fijoForm.desc, monto: Number(fijoForm.monto), cat: fijoForm.cat, method: fijoForm.method, tipo: fijoForm.tipo, activo: true, currency: fijoForm.currency || "ARS",
       hastaFecha: fijoForm.tipo === "mensual" ? (fijoForm.hastaFecha || null) : null,
       cuotasTotales: fijoForm.tipo === "cuotas" ? Number(fijoForm.cuotasTotales) : null,
       cuotasPagadas: editFijoId ? (fijos.find(f => f.id === editFijoId)?.cuotasPagadas || 0) : 0,
@@ -185,8 +219,10 @@ export default function App() {
   };
 
   const txsMes = txs.filter((t) => isInMonth(t.fecha, movMes));
-  const ingMovMes = txsMes.filter((t) => t.type === "ingreso").reduce((a, t) => a + t.monto, 0);
-  const gstMovMes = txsMes.filter((t) => t.type === "gasto").reduce((a, t) => a + t.monto, 0);
+  const ingMovMesARS = txsMes.filter((t) => t.type === "ingreso" && (t.currency || "ARS") === "ARS").reduce((a, t) => a + t.monto, 0);
+  const gstMovMesARS = txsMes.filter((t) => t.type === "gasto" && (t.currency || "ARS") === "ARS").reduce((a, t) => a + t.monto, 0);
+  const ingMovMesUSD = txsMes.filter((t) => t.type === "ingreso" && t.currency === "USD").reduce((a, t) => a + t.monto, 0);
+  const gstMovMesUSD = txsMes.filter((t) => t.type === "gasto" && t.currency === "USD").reduce((a, t) => a + t.monto, 0);
 
   return (
     <>
@@ -230,6 +266,9 @@ export default function App() {
               totalFijos={totalFijos}
               totalIngresos={totalIngresos}
               totalGastos={totalGastos}
+              totalsByCurrency={totalsByCurrency}
+              totalsUnifiedARS={totalsUnifiedARS}
+              fxRate={fxRate}
               activosFijos={activosFijos}
               top5={top5}
               txs={txs}
@@ -245,8 +284,10 @@ export default function App() {
               mesesDisponibles={mesesDisponibles}
               movMes={movMes}
               setMovMes={setMovMes}
-              ingMovMes={ingMovMes}
-              gstMovMes={gstMovMes}
+              ingMovMesARS={ingMovMesARS}
+              gstMovMesARS={gstMovMesARS}
+              ingMovMesUSD={ingMovMesUSD}
+              gstMovMesUSD={gstMovMesUSD}
               txsMes={txsMes}
               mthInfo={mthInfo}
               onEditTx={startEdit}
@@ -289,6 +330,8 @@ export default function App() {
               customCats={customCats}
               onAddCustomCat={(cat) => upd({ customCats: [...customCats, cat] })}
               onDelCustomCat={(id) => upd({ customCats: customCats.filter((c) => c.id !== id) })}
+              fxRate={fxRate}
+              onUpdateFxRate={(rate) => upd({ fxRate: { USD_ARS: Number(rate), updatedAt: today() } })}
             />
           )}
         </div>

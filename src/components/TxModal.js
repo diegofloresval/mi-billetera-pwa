@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { C, CATS, METHODS } from "../constants";
+import { C, CATS, METHODS, CURRENCIES } from "../constants";
 import { fmt, guessCat } from "../helpers";
 
 const inp = (extra = {}) => ({
@@ -58,6 +58,15 @@ export function TxModal({ modalType, setModalType, form, setForm, editId, sueldo
             <div style={{ display: "flex", gap: 10 }}>
               <input placeholder="Monto $" type="number" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} {...inp({ style: { flex: 1, marginBottom: 10 } })} />
               <input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} {...inp({ style: { flex: 1, marginBottom: 10, fontSize: 13 } })} />
+            </div>
+            <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>Moneda</p>
+            <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+              {CURRENCIES.map((cur) => {
+                const active = (form.currency || "ARS") === cur.id;
+                return (
+                  <button key={cur.id} className="btn-pill" onClick={() => setForm({ ...form, currency: cur.id })} style={{ flex: 1, padding: "10px 14px", borderRadius: 99, border: "none", background: active ? C.lavanda : C.lavandaSoft, color: active ? "#fff" : C.ink, fontSize: 13, fontWeight: 800, fontFamily: "inherit", cursor: "pointer" }}>{cur.symbol} {cur.id}</button>
+                );
+              })}
             </div>
             {modalType !== "ingreso" && <>
               <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>Método de pago</p>

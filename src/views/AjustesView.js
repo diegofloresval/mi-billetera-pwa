@@ -38,14 +38,40 @@ const S = {
   colorSelect: { height: 40, borderRadius: 12, border: `1.5px solid ${C.lavandaSoft}`, padding: "0 8px", fontSize: 14, background: "#fff", color: C.ink },
   addBtn: { marginTop: 10, width: "100%", padding: "10px 16px", borderRadius: 99, border: "none", background: C.lavanda, color: "#fff", fontWeight: 800, fontSize: 13, cursor: "pointer" },
   addBtnDisabled: { marginTop: 10, width: "100%", padding: "10px 16px", borderRadius: 99, border: "none", background: C.lavandaSoft, color: "#6B46C1", fontWeight: 800, fontSize: 13, cursor: "not-allowed", opacity: 0.7 },
+  fxCard: { background: C.card, borderRadius: 20, padding: "16px 18px", marginBottom: 22, boxShadow: `0 4px 14px ${C.lavanda}10` },
+  fxCurrent: { fontWeight: 800, fontSize: 16, color: C.ink },
+  fxUpdated: { fontSize: 11, color: C.ink2, marginTop: 4 },
+  fxWarn: { fontSize: 11, color: C.coral, marginTop: 4, fontWeight: 700 },
+  fxFormRow: { display: "flex", gap: 8, alignItems: "center", marginTop: 12 },
+  fxInput: { flex: 1, height: 40, borderRadius: 12, border: `1.5px solid ${C.lavandaSoft}`, padding: "0 12px", fontSize: 14, color: C.ink, background: "#fff" },
+  fxSaveBtn: { padding: "0 18px", height: 40, borderRadius: 99, border: "none", background: C.lavanda, color: "#fff", fontWeight: 800, fontSize: 13, cursor: "pointer" },
+  fxSaveBtnDisabled: { padding: "0 18px", height: 40, borderRadius: 99, border: "none", background: C.lavandaSoft, color: "#6B46C1", fontWeight: 800, fontSize: 13, cursor: "not-allowed", opacity: 0.7 },
 };
 
-export function AjustesView({ nombre, onChangeNombre, onExport, onImportClick, onBorrarTodo, fileInputRef, onFileChange, customCats = [], onAddCustomCat, onDelCustomCat }) {
+function daysSince(iso) {
+  if (!iso) return null;
+  const then = new Date(iso + "T00:00:00").getTime();
+  if (Number.isNaN(then)) return null;
+  return Math.floor((Date.now() - then) / 86400000);
+}
+
+export function AjustesView({ nombre, onChangeNombre, onExport, onImportClick, onBorrarTodo, fileInputRef, onFileChange, customCats = [], onAddCustomCat, onDelCustomCat, fxRate = { USD_ARS: 0, updatedAt: null }, onUpdateFxRate }) {
   const [emoji, setEmoji] = useState("");
   const [label, setLabel] = useState("");
   const [color, setColor] = useState(CUSTOM_CAT_COLORS[0]);
+  const [fxInput, setFxInput] = useState("");
 
   const canAdd = emoji.trim() && label.trim();
+  const canSaveFx = fxInput.trim() && Number(fxInput) > 0;
+
+  const handleSaveFx = () => {
+    if (!canSaveFx) return;
+    onUpdateFxRate?.(Number(fxInput));
+    setFxInput("");
+  };
+
+  const fxDays = daysSince(fxRate?.updatedAt);
+  const fxStale = fxDays !== null && fxDays > 30;
 
   const handleAdd = () => {
     if (!canAdd) return;
@@ -102,6 +128,29 @@ export function AjustesView({ nombre, onChangeNombre, onExport, onImportClick, o
         <button onClick={handleAdd} disabled={!canAdd} style={canAdd ? S.addBtn : S.addBtnDisabled} className="btn-pill">
           Agregar categoría
         </button>
+      </div>
+
+      <p style={S.sectionLabel}>💱 Tipo de cambio</p>
+      <div style={S.fxCard}>
+        <p style={S.fxCurrent}>
+          {fxRate?.USD_ARS > 0 ? `1 USD = $${fxRate.USD_ARS} ARS` : "No definido"}
+        </p>
+        <p style={S.fxUpdated}>Actualizado: {fxRate?.updatedAt || "—"}</p>
+        {fxStale && <p style={S.fxWarn}>Actualizá el tipo de cambio</p>}
+        <div style={S.fxFormRow}>
+          <input
+            type="number"
+            inputMode="decimal"
+            value={fxInput}
+            onChange={(e) => setFxInput(e.target.value)}
+            placeholder="Ej: 1200"
+            style={S.fxInput}
+            aria-label="Nuevo tipo de cambio"
+          />
+          <button onClick={handleSaveFx} disabled={!canSaveFx} style={canSaveFx ? S.fxSaveBtn : S.fxSaveBtnDisabled} className="btn-pill">
+            Guardar
+          </button>
+        </div>
       </div>
 
       <p style={S.sectionLabel}>Datos</p>

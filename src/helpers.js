@@ -3,6 +3,8 @@ import { STORE_KEY, CAT, INITIAL_STATE } from "./constants";
 const isValidYmd = (s) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
 const isValidYm = (s) => typeof s === "string" && /^\d{4}-\d{2}$/.test(s);
 
+const sanitizeCurrency = (c) => (c === "USD" || c === "ARS") ? c : "ARS";
+
 const sanitizeTx = (t, validCatIds) => {
   if (!t || typeof t !== "object") return null;
   const monto = Number(t.monto);
@@ -19,6 +21,7 @@ const sanitizeTx = (t, validCatIds) => {
     cat,
     desc: typeof t.desc === "string" ? t.desc : "",
     method: typeof t.method === "string" ? t.method : "debito",
+    currency: sanitizeCurrency(t.currency),
   };
 };
 
@@ -41,7 +44,16 @@ const sanitizeFijo = (f, validCatIds) => {
     cuotasTotales: tipo === "cuotas" && Number.isFinite(Number(f.cuotasTotales)) ? Number(f.cuotasTotales) : null,
     cuotasPagadas: tipo === "cuotas" && Number.isFinite(Number(f.cuotasPagadas)) ? Number(f.cuotasPagadas) : 0,
     desde: tipo === "cuotas" && isValidYm(f.desde) ? f.desde : null,
+    currency: sanitizeCurrency(f.currency),
   };
+};
+
+const sanitizeFxRate = (fx) => {
+  if (!fx || typeof fx !== "object") return { USD_ARS: 0, updatedAt: null };
+  const n = Number(fx.USD_ARS);
+  const USD_ARS = Number.isFinite(n) && n >= 0 ? n : 0;
+  const updatedAt = typeof fx.updatedAt === "string" ? fx.updatedAt : null;
+  return { USD_ARS, updatedAt };
 };
 
 const sanitizeCustomCat = (c) => {
@@ -72,6 +84,7 @@ export const sanitizeState = (raw) => {
       sueldo: Number.isFinite(Number(raw.sueldo)) ? Number(raw.sueldo) : 0,
       nombre: typeof raw.nombre === "string" ? raw.nombre : "",
       customCats,
+      fxRate: sanitizeFxRate(raw.fxRate),
     },
     dropped,
   };
@@ -96,8 +109,21 @@ export const loadData = () => {
 
 export const uid = () => Math.random().toString(36).slice(2, 9);
 
-export const fmt = (n) =>
-  new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n || 0);
+export const fmt = (n, currency = "ARS") => {
+  const val = n || 0;
+  if (currency === "USD") {
+    const num = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }).format(val);
+    return `US$ ${num}`;
+  }
+  return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(val);
+};
+
+export const toARS = (monto, currency, fxRate) => {
+  if (currency === "ARS" || !currency) return monto;
+  const rate = fxRate && Number(fxRate.USD_ARS);
+  if (!rate) return null;
+  return monto * rate;
+};
 
 export const today = () => new Date().toISOString().slice(0, 10);
 export const currentMonth = () => new Date().toISOString().slice(0, 7);

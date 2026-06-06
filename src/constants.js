@@ -47,6 +47,11 @@ export const DEFAULT_BUDGETS = {
   servicios: 25000, suscripcion: 15000, gym: 25000, otro: 20000,
 };
 
+export const CURRENCIES = [
+  { id: "ARS", symbol: "$",   label: "Pesos" },
+  { id: "USD", symbol: "US$", label: "Dólares" },
+];
+
 export const INITIAL_STATE = {
   txs: [],
   fijos: [],
@@ -54,6 +59,7 @@ export const INITIAL_STATE = {
   sueldo: 0,
   nombre: "",
   customCats: [],
+  fxRate: { USD_ARS: 0, updatedAt: null },
 };
 
 export const CUSTOM_CAT_COLORS = [
