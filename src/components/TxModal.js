@@ -16,6 +16,17 @@ const toggleBtn = (active, accent, activeColor) => ({
   transition: "all .18s",
 });
 
+const S = {
+  labelMicro: { fontSize: 11, fontWeight: 800, color: C.ink2, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 },
+  toggleRow: { display: "flex", gap: 8, marginBottom: 20 },
+  amountRow: { display: "flex", gap: 10 },
+  pillRow: { display: "flex", gap: 8, marginBottom: 16 },
+  pillRowWrap: { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 },
+  catGrid: { display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 22 },
+  sueldoInfo: { fontSize: 13, color: C.ink2, marginBottom: 10 },
+  inkStrong: { color: C.ink },
+};
+
 export function TxModal({ modalType, setModalType, form, setForm, editId, sueldo, customCats = [], onSubmit, onClose }) {
   const allCats = [...CATS, ...customCats];
   const showToggle = modalType !== "sueldo" && !editId;
@@ -37,26 +48,27 @@ export function TxModal({ modalType, setModalType, form, setForm, editId, sueldo
   };
   const pickCat = (id) => { setForm({ ...form, cat: id }); setUserPickedCat(true); };
   const title = modalType === "ingreso" ? "💰 Agregar ingreso" : modalType === "sueldo" ? "💼 Mi sueldo" : `${editId ? "✏️ Editar" : "➕ Nuevo"} gasto`;
+  const submitBg = modalType === "ingreso" ? C.esmeralda : modalType === "sueldo" ? C.menta : C.hoja;
   return (
     <ModalSheet title={title} onClose={onClose}>
       {showToggle && (
-        <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+        <div style={S.toggleRow}>
           <button className="btn-pill" onClick={() => switchType("gasto")} style={toggleBtn(modalType === "gasto", C.coral, C.inkDanger)}>➖ Gasto</button>
           <button className="btn-pill" onClick={() => switchType("ingreso")} style={toggleBtn(modalType === "ingreso", C.hoja, "#fff")}>➕ Ingreso</button>
         </div>
       )}
       {modalType === "sueldo" ? (
-        <><p style={{ fontSize: 13, color: C.ink2, marginBottom: 10 }}>Actual: <strong style={{ color: C.ink }}>{fmt(sueldo)}</strong></p>
+        <><p style={S.sueldoInfo}>Actual: <strong style={S.inkStrong}>{fmt(sueldo)}</strong></p>
           <input placeholder="Nuevo sueldo" type="number" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} {...inp()} /></>
       ) : (
         <>
           <input placeholder="Descripción" value={form.desc} onChange={onDescChange} {...inp()} />
-          <div style={{ display: "flex", gap: 10 }}>
+          <div style={S.amountRow}>
             <input placeholder="Monto $" type="number" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} {...inp({ style: { flex: 1, marginBottom: 10 } })} />
             <input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} {...inp({ style: { flex: 1, marginBottom: 10, fontSize: 13 } })} />
           </div>
-          <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>Moneda</p>
-          <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+          <p style={S.labelMicro}>Moneda</p>
+          <div style={S.pillRow}>
             {CURRENCIES.map((cur) => {
               const active = (form.currency || "ARS") === cur.id;
               return (
@@ -65,18 +77,18 @@ export function TxModal({ modalType, setModalType, form, setForm, editId, sueldo
             })}
           </div>
           {modalType !== "ingreso" && <>
-            <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>Método de pago</p>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+            <p style={S.labelMicro}>Método de pago</p>
+            <div style={S.pillRowWrap}>
               {METHODS.map((m) => <button key={m.id} className="btn-pill" onClick={() => setForm({ ...form, method: m.id })} style={{ padding: "9px 14px", borderRadius: 99, border: "none", background: form.method === m.id ? (m.id === "credito" ? C.coral : C.hoja) : C.hojaSoft, color: form.method === m.id ? "#fff" : C.ink, fontSize: 13, fontWeight: 800 }}>{m.icon} {m.label}</button>)}
             </div>
-            <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>Categoría</p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 22 }}>
+            <p style={S.labelMicro}>Categoría</p>
+            <div style={S.catGrid}>
               {allCats.map((c) => <button key={c.id} className="btn-pill" onClick={() => pickCat(c.id)} style={{ padding: "8px 14px", borderRadius: 99, border: "none", background: form.cat === c.id ? C.menta : C.hojaSoft, color: C.ink, fontSize: 13, fontWeight: 800 }}>{c.emoji} {c.label}</button>)}
             </div>
           </>}
         </>
       )}
-      <button onClick={onSubmit} style={{ width: "100%", padding: 16, borderRadius: 18, border: "none", background: modalType === "ingreso" ? C.esmeralda : modalType === "sueldo" ? C.menta : C.hoja, color: modalType === "sueldo" ? C.inkOnHoja : "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 8px 20px ${(modalType === "ingreso" ? C.esmeralda : modalType === "sueldo" ? C.menta : C.hoja)}66` }}>
+      <button onClick={onSubmit} style={{ width: "100%", padding: 16, borderRadius: 18, border: "none", background: submitBg, color: modalType === "sueldo" ? C.inkOnHoja : "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 8px 20px ${submitBg}66` }}>
         {editId ? "Guardar" : modalType === "sueldo" ? "Actualizar sueldo" : modalType === "ingreso" ? "Agregar ingreso" : "Agregar gasto"}
       </button>
     </ModalSheet>

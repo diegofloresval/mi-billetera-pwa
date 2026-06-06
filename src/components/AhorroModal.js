@@ -6,6 +6,13 @@ const inp = (extra = {}) => ({
   ...extra,
 });
 
+const S = {
+  labelMicro: { fontSize: 11, fontWeight: 800, color: C.ink2, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 },
+  pillRow: { display: "flex", gap: 8, marginBottom: 16 },
+  colorRow: { display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 22 },
+  submit: { width: "100%", padding: 16, borderRadius: 18, border: "none", background: C.hoja, color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 8px 20px ${C.hoja}66` },
+};
+
 export function AhorroModal({ ahorroForm, setAhorroForm, editAhorroId, onSubmit, onClose }) {
   const selectedColor = ahorroForm.color || AHORRO_COLORS[0];
   const title = `🐷 ${editAhorroId ? "Editar meta" : "Nueva meta de ahorro"}`;
@@ -13,8 +20,8 @@ export function AhorroModal({ ahorroForm, setAhorroForm, editAhorroId, onSubmit,
     <ModalSheet title={title} onClose={onClose}>
       <input placeholder="Nombre (ej: Vacaciones, Auto, Notebook…)" value={ahorroForm.nombre} onChange={(e) => setAhorroForm({ ...ahorroForm, nombre: e.target.value })} {...inp()} />
       <input placeholder="Meta total $" type="number" value={ahorroForm.meta} onChange={(e) => setAhorroForm({ ...ahorroForm, meta: e.target.value })} {...inp()} />
-      <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>Moneda</p>
-      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+      <p style={S.labelMicro}>Moneda</p>
+      <div style={S.pillRow}>
         {CURRENCIES.map((cur) => {
           const active = (ahorroForm.currency || "ARS") === cur.id;
           return (
@@ -22,10 +29,10 @@ export function AhorroModal({ ahorroForm, setAhorroForm, editAhorroId, onSubmit,
           );
         })}
       </div>
-      <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>Emoji</p>
+      <p style={S.labelMicro}>Emoji</p>
       <input placeholder="🐷" maxLength={4} value={ahorroForm.emoji} onChange={(e) => setAhorroForm({ ...ahorroForm, emoji: e.target.value })} {...inp({ style: { textAlign: "center", fontSize: 22 } })} />
-      <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>Color</p>
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 22 }}>
+      <p style={S.labelMicro}>Color</p>
+      <div style={S.colorRow}>
         {AHORRO_COLORS.map((col) => {
           const active = selectedColor === col;
           return (
@@ -33,7 +40,7 @@ export function AhorroModal({ ahorroForm, setAhorroForm, editAhorroId, onSubmit,
           );
         })}
       </div>
-      <button onClick={onSubmit} style={{ width: "100%", padding: 16, borderRadius: 18, border: "none", background: C.hoja, color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 8px 20px ${C.hoja}66` }}>
+      <button onClick={onSubmit} style={S.submit}>
         {editAhorroId ? "Guardar cambios" : "Crear meta"}
       </button>
     </ModalSheet>
