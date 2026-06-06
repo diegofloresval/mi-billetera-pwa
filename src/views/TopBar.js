@@ -1,6 +1,9 @@
 import { C } from "../constants";
 import { saludo, monthLabel } from "../helpers";
 import { Icon } from "../components/Icon";
+import { ManekiNeko } from "../components/ManekiNeko";
+
+const TITLE_AHORROS = { display: "inline-flex", alignItems: "center", gap: 8 };
 
 const S = {
   wrap: { background: C.bg, padding: "calc(env(safe-area-inset-top) + 18px) 22px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, position: "sticky", top: 0, zIndex: 50 },
@@ -21,13 +24,18 @@ const S = {
 export function TopBar({ tab, nombre, cm, onAddIngreso, onAddSueldo, onAddFijo, onOpenAjustes }) {
   return (
     <div style={S.wrap}>
+      {tab === "Home" && (
+        <div style={S.avatar} aria-hidden="true">
+          {nombre ? nombre.trim().charAt(0).toUpperCase() : <ManekiNeko size={22} />}
+        </div>
+      )}
       <div style={S.titleBox}>
         <p style={S.title}>
           {tab === "Home" ? (nombre ? `¡Hola, ${nombre}! 👋` : "¡Hola! 👋")
             : tab === "Movimientos" ? "Movimientos"
             : tab === "Fijos" ? "📌 Gastos fijos"
             : tab === "Presupuesto" ? "Presupuesto"
-            : tab === "Ahorros" ? "🐷 Ahorros"
+            : tab === "Ahorros" ? (<span style={TITLE_AHORROS}><ManekiNeko size={20} /> Ahorros</span>)
             : "⚙️ Ajustes"}
         </p>
         {tab === "Home" && (

@@ -40,7 +40,7 @@ export const CATS = [
   { id: "otro",         label: "Otro",         emoji: "📦", color: C.menta },
 ];
 
-export const AHORRO_CAT = { id: "ahorro", label: "Ahorro", emoji: "🐷", color: C.hoja };
+export const AHORRO_CAT = { id: "ahorro", label: "Ahorro", emoji: "🐱", color: C.hoja };
 
 export const CAT = Object.fromEntries([...CATS, AHORRO_CAT].map((c) => [c.id, c]));
 

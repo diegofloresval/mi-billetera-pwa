@@ -28,7 +28,7 @@ export default function App() {
   const [editFijoId, setEditFijoId] = useState(null);
   const [showAhorroModal, setShowAhorroModal] = useState(false);
   const [editAhorroId, setEditAhorroId] = useState(null);
-  const [ahorroForm, setAhorroForm] = useState({ nombre: "", meta: "", color: AHORRO_COLORS[0], emoji: "🐷", currency: "ARS" });
+  const [ahorroForm, setAhorroForm] = useState({ nombre: "", meta: "", color: AHORRO_COLORS[0], emoji: "🐱", currency: "ARS" });
   const [form, setForm] = useState({ desc: "", monto: "", cat: "supermercado", fecha: today(), method: "debito", currency: "ARS" });
   const [fijoForm, setFijoForm] = useState({ desc: "", monto: "", cat: "gym", method: "debito", tipo: "mensual", hastaFecha: "", cuotasTotales: 6, desde: currentMonth(), currency: "ARS" });
   const [editId, setEditId] = useState(null);
@@ -193,8 +193,8 @@ export default function App() {
   const openAhorroModal = (a = null) => {
     setEditAhorroId(a ? a.id : null);
     setAhorroForm(a
-      ? { nombre: a.nombre, meta: a.meta != null ? String(a.meta) : "", color: a.color || AHORRO_COLORS[0], emoji: a.emoji || "🐷", currency: a.currency || "ARS" }
-      : { nombre: "", meta: "", color: AHORRO_COLORS[0], emoji: "🐷", currency: "ARS" });
+      ? { nombre: a.nombre, meta: a.meta != null ? String(a.meta) : "", color: a.color || AHORRO_COLORS[0], emoji: a.emoji || "🐱", currency: a.currency || "ARS" }
+      : { nombre: "", meta: "", color: AHORRO_COLORS[0], emoji: "🐱", currency: "ARS" });
     setShowAhorroModal(true);
   };
 
@@ -206,7 +206,7 @@ export default function App() {
       nombre: ahorroForm.nombre.trim(),
       meta: metaNum,
       color: ahorroForm.color || AHORRO_COLORS[0],
-      emoji: ahorroForm.emoji || "🐷",
+      emoji: ahorroForm.emoji || "🐱",
       currency: ahorroForm.currency || "ARS",
     };
     if (editAhorroId) {

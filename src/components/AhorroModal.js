@@ -1,5 +1,8 @@
 import { C, CURRENCIES, AHORRO_COLORS } from "../constants";
 import { ModalSheet } from "./ModalSheet";
+import { ManekiNeko } from "./ManekiNeko";
+
+const TITLE_WRAP = { display: "inline-flex", alignItems: "center", gap: 8 };
 
 const inp = (extra = {}) => ({
   style: { width: "100%", border: `1.5px solid ${C.hojaSoft}`, borderRadius: 16, padding: "14px 16px", fontSize: 15, color: C.ink, fontFamily: "inherit", background: C.card, marginBottom: 10, ...extra.style },
@@ -15,7 +18,12 @@ const S = {
 
 export function AhorroModal({ ahorroForm, setAhorroForm, editAhorroId, onSubmit, onClose }) {
   const selectedColor = ahorroForm.color || AHORRO_COLORS[0];
-  const title = `🐷 ${editAhorroId ? "Editar meta" : "Nueva meta de ahorro"}`;
+  const title = (
+    <span style={TITLE_WRAP}>
+      <ManekiNeko size={22} />
+      {editAhorroId ? "Editar meta" : "Nueva meta de ahorro"}
+    </span>
+  );
   return (
     <ModalSheet title={title} onClose={onClose}>
       <input placeholder="Nombre (ej: Vacaciones, Auto, Notebook…)" value={ahorroForm.nombre} onChange={(e) => setAhorroForm({ ...ahorroForm, nombre: e.target.value })} {...inp()} />
@@ -30,7 +38,7 @@ export function AhorroModal({ ahorroForm, setAhorroForm, editAhorroId, onSubmit,
         })}
       </div>
       <p style={S.labelMicro}>Emoji</p>
-      <input placeholder="🐷" maxLength={4} value={ahorroForm.emoji} onChange={(e) => setAhorroForm({ ...ahorroForm, emoji: e.target.value })} {...inp({ style: { textAlign: "center", fontSize: 22 } })} />
+      <input placeholder="🐱" maxLength={4} value={ahorroForm.emoji} onChange={(e) => setAhorroForm({ ...ahorroForm, emoji: e.target.value })} {...inp({ style: { textAlign: "center", fontSize: 22 } })} />
       <p style={S.labelMicro}>Color</p>
       <div style={S.colorRow}>
         {AHORRO_COLORS.map((col) => {

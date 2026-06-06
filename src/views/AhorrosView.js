@@ -2,6 +2,9 @@ import { useState, useMemo } from "react";
 import { C } from "../constants";
 import { fmt } from "../helpers";
 import { AportarModal } from "../components/AportarModal";
+import { ManekiNeko } from "../components/ManekiNeko";
+
+const HEADER_LABEL = { fontSize: 12, color: C.ink2, fontWeight: 700, marginBottom: 4, display: "inline-flex", alignItems: "center", gap: 6 };
 
 export function AhorrosView({ ahorros = [], onOpenModal, onAportar, onDelAhorro }) {
   const [aportarId, setAportarId] = useState(null);
@@ -23,7 +26,7 @@ export function AhorrosView({ ahorros = [], onOpenModal, onAportar, onDelAhorro 
   return (
     <div className="fade-in" style={{ paddingTop: 8 }}>
       <div style={{ background: C.hojaSoft, borderRadius: 26, padding: "20px 20px", marginBottom: 22, textAlign: "center" }}>
-        <p style={{ fontSize: 12, color: C.ink2, fontWeight: 700, marginBottom: 4 }}>🐷 Mis ahorros</p>
+        <p style={HEADER_LABEL}><ManekiNeko size={22} /> Mis ahorros</p>
         {currencies.length === 0 && (
           <p style={{ fontWeight: 900, fontSize: 34, color: C.esmeralda, fontVariantNumeric: "tabular-nums", letterSpacing: -1 }}>{fmt(0)}</p>
         )}
@@ -91,7 +94,7 @@ export function AhorrosView({ ahorros = [], onOpenModal, onAportar, onDelAhorro 
 
       {ahorros.length === 0 && (
         <div style={{ textAlign: "center", marginTop: 60, padding: "0 20px" }}>
-          <p style={{ fontSize: 56, marginBottom: 10 }}>🐷</p>
+          <div style={{ marginBottom: 10, display: "flex", justifyContent: "center" }}><ManekiNeko size={56} /></div>
           <p style={{ color: C.ink, fontWeight: 800, fontSize: 16, marginBottom: 6 }}>Aún no tenés metas de ahorro</p>
           <p style={{ color: C.ink2, fontSize: 13, marginBottom: 20 }}>Creá tu primera meta y empezá a ahorrar para lo que quieras.</p>
           <button onClick={() => onOpenModal(null)} style={{ padding: "12px 22px", borderRadius: 99, border: "none", background: C.hoja, color: C.inkOnHoja, fontWeight: 800, fontSize: 14, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 8px 20px ${C.hoja}66` }}>

@@ -3,6 +3,7 @@ import { C, CAT } from "../constants";
 import { fmt, cuotaLabel } from "../helpers";
 import { Icon } from "../components/Icon";
 import { AnimNumber } from "../components/AnimNumber";
+import { ManekiNeko } from "../components/ManekiNeko";
 
 const TOGGLE_WRAP = { display: "inline-flex", background: C.bg, borderRadius: 99, padding: 3, gap: 2 };
 const TOGGLE_BTN = (active, disabled) => ({
@@ -137,7 +138,7 @@ export function HomeView({
         return (
           <div style={{ marginTop: 22 }}>
             <div onClick={onGoAhorros} className="btn-pill" style={{ background: C.card, borderRadius: 22, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, boxShadow: `0 4px 16px ${C.hoja}1F`, cursor: "pointer" }}>
-              <div style={{ width: 44, height: 44, borderRadius: "50%", background: C.hojaSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>🐷</div>
+              <div style={{ width: 44, height: 44, borderRadius: "50%", background: C.hojaSoft, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><ManekiNeko size={24} /></div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontWeight: 800, fontSize: 14, color: C.ink }}>Ahorros</p>
                 <p style={{ fontSize: 11, color: C.ink2, marginTop: 2, fontWeight: 600 }}>{ahorros.length} meta{ahorros.length === 1 ? "" : "s"}</p>
