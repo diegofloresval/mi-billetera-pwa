@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { C } from "../constants";
 import { fmt } from "../helpers";
 import { AportarModal } from "../components/AportarModal";
@@ -6,13 +6,13 @@ import { AportarModal } from "../components/AportarModal";
 export function AhorrosView({ ahorros = [], onOpenModal, onAportar, onDelAhorro }) {
   const [aportarId, setAportarId] = useState(null);
 
-  const byCurrency = ahorros.reduce((acc, a) => {
+  const byCurrency = useMemo(() => ahorros.reduce((acc, a) => {
     const cur = a.currency || "ARS";
     if (!acc[cur]) acc[cur] = { actual: 0, meta: 0 };
     acc[cur].actual += a.actual || 0;
     acc[cur].meta += a.meta || 0;
     return acc;
-  }, {});
+  }, {}), [ahorros]);
   const currencies = Object.keys(byCurrency);
   const totalActualGlobal = currencies.reduce((s, c) => s + byCurrency[c].actual, 0);
   const totalMetaGlobal = currencies.reduce((s, c) => s + byCurrency[c].meta, 0);
