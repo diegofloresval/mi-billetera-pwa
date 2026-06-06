@@ -60,7 +60,7 @@ export function AhorrosView({ ahorros = [], onOpenModal, onAportar, onDelAhorro 
         return (
           <div key={a.id} style={{ background: C.card, borderRadius: 26, padding: "18px 18px", marginBottom: 14, boxShadow: `0 6px 22px ${a.color}1F` }}>
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ width: 52, height: 52, borderRadius: "50%", background: `${a.color}26`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>{a.emoji}</div>
+              <div style={{ width: 52, height: 52, borderRadius: "50%", background: `${a.color}26`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>{!a.emoji || a.emoji === "🐷" || a.emoji === "🐱" ? <ManekiNeko size={32} /> : a.emoji}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontWeight: 800, fontSize: 16, color: C.ink }}>{a.nombre}</p>
                 <p style={{ fontSize: 11, color: C.ink2, fontWeight: 700, marginTop: 2 }}>Meta {fmt(a.meta, a.currency)}</p>
@@ -95,7 +95,7 @@ export function AhorrosView({ ahorros = [], onOpenModal, onAportar, onDelAhorro 
 
       {ahorros.length === 0 && (
         <div style={{ textAlign: "center", marginTop: 60, padding: "0 20px" }}>
-          <div style={{ marginBottom: 10, display: "flex", justifyContent: "center" }}><ManekiNeko size={56} /></div>
+          <div style={{ marginBottom: 10, display: "flex", justifyContent: "center" }}><ManekiNeko size={120} /></div>
           <p style={{ color: C.ink, fontWeight: 800, fontSize: 16, marginBottom: 6 }}>Aún no tenés metas de ahorro</p>
           <p style={{ color: C.ink2, fontSize: 13, marginBottom: 20 }}>Creá tu primera meta y empezá a ahorrar para lo que quieras.</p>
           <button onClick={() => onOpenModal(null)} style={{ padding: "12px 22px", borderRadius: 99, border: "none", background: C.hoja, color: C.inkOnHoja, fontWeight: 800, fontSize: 14, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 8px 20px ${C.hoja}66` }}>

@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { C } from "../constants";
 import { today } from "../helpers";
+import { ManekiNeko } from "./ManekiNeko";
+
+const TITLE_WRAP = { display: "inline-flex", alignItems: "center", gap: 8 };
 
 const S = {
   overlay: { position: "fixed", inset: 0, background: "rgba(26,61,42,.55)", zIndex: 250, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 },
@@ -27,7 +30,12 @@ export function AportarModal({ ahorro, onConfirm, onClose }) {
     <div style={S.overlay} onClick={onClose}>
       <div className="fade-in" style={S.dialog} onClick={(e) => e.stopPropagation()}>
         <div style={S.header}>
-          <p style={S.title}>{ahorro.emoji} Aportar a {ahorro.nombre}</p>
+          <p style={S.title}>
+            <span style={TITLE_WRAP}>
+              {!ahorro.emoji || ahorro.emoji === "🐷" || ahorro.emoji === "🐱" ? <ManekiNeko size={22} /> : <span>{ahorro.emoji}</span>}
+              Aportar a {ahorro.nombre}
+            </span>
+          </p>
           <button onClick={onClose} aria-label="Cerrar" style={S.close}>✕</button>
         </div>
         <p style={S.labelMicro}>Monto ({ahorro.currency || "ARS"})</p>

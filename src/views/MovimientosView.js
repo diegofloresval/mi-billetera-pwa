@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { C, CAT } from "../constants";
 import { fmt, monthLabel } from "../helpers";
 import { Icon } from "../components/Icon";
+import { ManekiNeko } from "../components/ManekiNeko";
 
 const SEARCH_WRAP = { position: "relative", marginBottom: 12 };
 const SEARCH_ICON = { position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: C.ink2, pointerEvents: "none", display: "flex" };
@@ -71,7 +72,7 @@ export function MovimientosView({ mesesDisponibles, movMes, setMovMes, ingMovMes
         const isAporte = tx.cat === "ahorro";
         return (
           <div key={tx.id} className="tx-row" style={{ background: C.card, borderRadius: 22, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, cursor: isAporte ? "default" : "pointer", marginBottom: 10, boxShadow: `0 3px 14px ${C.hoja}1F` }} onClick={() => isAporte ? null : onEditTx(tx)} title={isAporte ? "Editá este aporte desde la meta en Ahorros" : undefined}>
-            <div style={{ width: 48, height: 48, borderRadius: "50%", background: C.mentaSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>{cat.emoji}</div>
+            <div style={{ width: 48, height: 48, borderRadius: "50%", background: C.mentaSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>{tx.cat === "ahorro" ? <ManekiNeko size={28} /> : cat.emoji}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontWeight: 800, fontSize: 15, color: C.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tx.desc}</p>
               <div style={{ display: "flex", gap: 8, marginTop: 4, flexWrap: "wrap", alignItems: "center" }}>

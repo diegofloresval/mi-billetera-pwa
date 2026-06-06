@@ -41,7 +41,7 @@ export function HomeView({
 
   return (
     <div className="fade-in">
-      <div style={{ background: C.card, borderRadius: 28, padding: "22px 22px", marginTop: 16, position: "relative", overflow: "hidden", boxShadow: `0 10px 32px ${C.hoja}55` }}>
+      <div style={{ background: `linear-gradient(135deg, ${C.card} 0%, ${C.hojaSoft} 100%)`, borderRadius: 28, padding: "22px 22px", marginTop: 16, position: "relative", overflow: "hidden", boxShadow: `0 10px 32px ${C.hoja}55` }}>
         <div style={{ position: "relative", zIndex: 2 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, flexWrap: "wrap" }}>
             <p style={{ color: C.ink2, fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase", fontWeight: 800 }}>Balance del mes</p>
@@ -72,12 +72,6 @@ export function HomeView({
           {effectiveMode === "unified" && fxRate && fxRate.USD_ARS > 0 && (
             <p style={{ fontSize: 10, color: C.ink2, marginTop: 10, fontWeight: 600 }}>USD convertido a {fmt(fxRate.USD_ARS)} / US$1</p>
           )}
-        </div>
-        <div style={{ position: "absolute", right: -8, bottom: -16, opacity: 0.28, pointerEvents: "none", zIndex: 1 }}>
-          <Icon name="eco" size={120} filled weight={400} color={C.hoja} />
-        </div>
-        <div style={{ position: "absolute", right: 28, top: 22, opacity: 0.35, pointerEvents: "none", transform: "rotate(12deg)", zIndex: 1 }}>
-          <Icon name="star" size={32} filled color={C.menta} />
         </div>
       </div>
 
@@ -181,7 +175,7 @@ export function HomeView({
           <button onClick={onGoMovimientos} style={{ background: "none", border: "none", color: C.esmeralda, fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>Ver todo →</button>
         </div>
         {txs.length === 0 ? (
-          <p style={{ color: C.ink2, textAlign: "center", padding: 30 }}>Todavía no hay movimientos 🪴<br /><small>Usá el botón + para agregar</small></p>
+          <p style={{ color: C.ink2, textAlign: "center", padding: 30 }}>Todavía no hay movimientos<br /><small>Usá el botón + para agregar</small></p>
         ) : (
           <div style={{ background: C.card, borderRadius: 26, overflow: "hidden", boxShadow: `0 4px 18px ${C.hoja}1F` }}>
             {txs.slice(0, 5).map((tx, idx, arr) => {
@@ -189,7 +183,7 @@ export function HomeView({
               const mth = mthInfo(tx.method);
               return (
                 <div key={tx.id} className="tx-row" style={{ padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, cursor: "pointer", borderBottom: idx < arr.length - 1 ? `1px solid ${C.bg}` : "none" }} onClick={() => onEditTx(tx)}>
-                  <div style={{ width: 42, height: 42, borderRadius: "50%", background: C.mentaSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{cat.emoji}</div>
+                  <div style={{ width: 42, height: 42, borderRadius: "50%", background: C.mentaSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{tx.cat === "ahorro" ? <ManekiNeko size={24} /> : cat.emoji}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontWeight: 800, fontSize: 14, color: C.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tx.desc}</p>
                     <p style={{ fontSize: 11, color: C.ink2, marginTop: 2, fontWeight: 500 }}>{tx.fecha} · {mth.icon} {mth.label}</p>
