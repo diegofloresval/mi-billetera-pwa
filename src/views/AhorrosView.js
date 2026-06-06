@@ -1,33 +1,24 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { C } from "../constants";
-import { fmt, today } from "../helpers";
+import { fmt } from "../helpers";
+import { AportarModal } from "../components/AportarModal";
 
 export function AhorrosView({ ahorros = [], onOpenModal, onAportar, onDelAhorro }) {
   const [aportarId, setAportarId] = useState(null);
-  const [aportarMonto, setAportarMonto] = useState("");
-  const [aportarFecha, setAportarFecha] = useState(today());
 
-  const byCurrency = ahorros.reduce((acc, a) => {
+  const byCurrency = useMemo(() => ahorros.reduce((acc, a) => {
     const cur = a.currency || "ARS";
     if (!acc[cur]) acc[cur] = { actual: 0, meta: 0 };
     acc[cur].actual += a.actual || 0;
     acc[cur].meta += a.meta || 0;
     return acc;
-  }, {});
+  }, {}), [ahorros]);
   const currencies = Object.keys(byCurrency);
   const totalActualGlobal = currencies.reduce((s, c) => s + byCurrency[c].actual, 0);
   const totalMetaGlobal = currencies.reduce((s, c) => s + byCurrency[c].meta, 0);
   const pctGlobal = totalMetaGlobal > 0 ? Math.min(100, Math.round((totalActualGlobal / totalMetaGlobal) * 100)) : 0;
 
-  const closeAportar = () => { setAportarId(null); setAportarMonto(""); setAportarFecha(today()); };
-  const openAportar = (id) => { setAportarId(id); setAportarMonto(""); setAportarFecha(today()); };
-  const aportarNum = Number(aportarMonto);
-  const aportarValid = Number.isFinite(aportarNum) && aportarNum > 0;
-  const confirmAportar = () => {
-    if (!aportarValid) return;
-    onAportar(aportarId, aportarNum, undefined, aportarFecha);
-    closeAportar();
-  };
+  const aportarAhorro = aportarId ? ahorros.find((x) => x.id === aportarId) : null;
 
   return (
     <div className="fade-in" style={{ paddingTop: 8 }}>
@@ -87,7 +78,7 @@ export function AhorrosView({ ahorros = [], onOpenModal, onAportar, onDelAhorro 
               <button onClick={() => onOpenModal(a)} style={{ flex: 1, padding: "10px 0", borderRadius: 99, border: "none", background: C.hojaSoft, color: C.inkOnHoja, fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
                 ✏️ Editar
               </button>
-              <button onClick={() => openAportar(a.id)} style={{ flex: 1.3, padding: "10px 0", borderRadius: 99, border: "none", background: C.mentaSoft, color: C.inkSuccess, fontWeight: 900, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+              <button onClick={() => setAportarId(a.id)} style={{ flex: 1.3, padding: "10px 0", borderRadius: 99, border: "none", background: C.mentaSoft, color: C.inkSuccess, fontWeight: 900, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
                 + Aportar
               </button>
               <button aria-label="Eliminar" onClick={() => onDelAhorro(a.id)} style={{ width: 44, padding: "10px 0", borderRadius: 99, border: "none", background: C.coralSoft, color: C.inkDanger, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -109,27 +100,13 @@ export function AhorrosView({ ahorros = [], onOpenModal, onAportar, onDelAhorro 
         </div>
       )}
 
-      {aportarId && (() => {
-        const a = ahorros.find((x) => x.id === aportarId);
-        if (!a) return null;
-        return (
-          <div style={{ position: "fixed", inset: 0, background: "rgba(26,61,42,.55)", zIndex: 250, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={closeAportar}>
-            <div className="fade-in" style={{ width: "100%", maxWidth: 360, background: C.card, borderRadius: 26, padding: "24px 22px" }} onClick={(e) => e.stopPropagation()}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                <p style={{ fontWeight: 800, fontSize: 17, color: C.ink }}>{a.emoji} Aportar a {a.nombre}</p>
-                <button onClick={closeAportar} aria-label="Cerrar" style={{ border: "none", background: "transparent", color: C.ink2, fontSize: 20, cursor: "pointer", padding: 4, fontFamily: "inherit", lineHeight: 1 }}>✕</button>
-              </div>
-              <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>Monto ({a.currency || "ARS"})</p>
-              <input autoFocus type="number" placeholder="0" value={aportarMonto} onChange={(e) => setAportarMonto(e.target.value)} style={{ width: "100%", border: `1.5px solid ${C.hojaSoft}`, borderRadius: 16, padding: "14px 16px", fontSize: 18, color: C.ink, fontFamily: "inherit", background: C.card, marginBottom: 12, fontWeight: 800 }} />
-              <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>Fecha</p>
-              <input type="date" value={aportarFecha} onChange={(e) => setAportarFecha(e.target.value)} style={{ width: "100%", border: `1.5px solid ${C.hojaSoft}`, borderRadius: 16, padding: "14px 16px", fontSize: 14, color: C.ink, fontFamily: "inherit", background: C.card, marginBottom: 16 }} />
-              <button onClick={confirmAportar} disabled={!aportarValid} style={{ width: "100%", padding: 14, borderRadius: 16, border: "none", background: a.color, color: "#fff", fontSize: 15, fontWeight: 800, cursor: aportarValid ? "pointer" : "not-allowed", fontFamily: "inherit", boxShadow: aportarValid ? `0 6px 16px ${a.color}66` : "none", opacity: aportarValid ? 1 : 0.5 }}>
-                Confirmar aporte
-              </button>
-            </div>
-          </div>
-        );
-      })()}
+      {aportarAhorro && (
+        <AportarModal
+          ahorro={aportarAhorro}
+          onConfirm={(monto, fecha) => { onAportar(aportarAhorro.id, monto, undefined, fecha); setAportarId(null); }}
+          onClose={() => setAportarId(null)}
+        />
+      )}
     </div>
   );
 }

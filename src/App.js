@@ -258,7 +258,7 @@ export default function App() {
 
   const mthInfo = (id) => METHODS.find((m) => m.id === id) || METHODS[0];
   const activosFijos = useMemo(() => fijos.filter((f) => fijoActivoEsteMes(f, cm)), [fijos, cm]);
-  const inactivosFijos = fijos.filter((f) => !fijoActivoEsteMes(f, cm));
+  const inactivosFijos = useMemo(() => fijos.filter((f) => !fijoActivoEsteMes(f, cm)), [fijos, cm]);
 
   const exportar = () => {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
@@ -296,11 +296,11 @@ export default function App() {
     setInstallPrompt(null);
   };
 
-  const txsMes = txs.filter((t) => isInMonth(t.fecha, movMes));
-  const ingMovMesARS = txsMes.filter((t) => t.type === "ingreso" && (t.currency || "ARS") === "ARS").reduce((a, t) => a + t.monto, 0);
-  const gstMovMesARS = txsMes.filter((t) => t.type === "gasto" && (t.currency || "ARS") === "ARS").reduce((a, t) => a + t.monto, 0);
-  const ingMovMesUSD = txsMes.filter((t) => t.type === "ingreso" && t.currency === "USD").reduce((a, t) => a + t.monto, 0);
-  const gstMovMesUSD = txsMes.filter((t) => t.type === "gasto" && t.currency === "USD").reduce((a, t) => a + t.monto, 0);
+  const txsMes = useMemo(() => txs.filter((t) => isInMonth(t.fecha, movMes)), [txs, movMes]);
+  const ingMovMesARS = useMemo(() => txsMes.filter((t) => t.type === "ingreso" && (t.currency || "ARS") === "ARS").reduce((a, t) => a + t.monto, 0), [txsMes]);
+  const gstMovMesARS = useMemo(() => txsMes.filter((t) => t.type === "gasto" && (t.currency || "ARS") === "ARS").reduce((a, t) => a + t.monto, 0), [txsMes]);
+  const ingMovMesUSD = useMemo(() => txsMes.filter((t) => t.type === "ingreso" && t.currency === "USD").reduce((a, t) => a + t.monto, 0), [txsMes]);
+  const gstMovMesUSD = useMemo(() => txsMes.filter((t) => t.type === "gasto" && t.currency === "USD").reduce((a, t) => a + t.monto, 0), [txsMes]);
 
   return (
     <>
