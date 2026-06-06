@@ -3,6 +3,7 @@ import { C } from "../constants";
 import { fmt } from "../helpers";
 import { AportarModal } from "../components/AportarModal";
 import { ManekiNeko } from "../components/ManekiNeko";
+import { Icon } from "../components/Icon";
 
 const HEADER_LABEL = { fontSize: 12, color: C.ink2, fontWeight: 700, marginBottom: 4, display: "inline-flex", alignItems: "center", gap: 6 };
 
@@ -79,13 +80,13 @@ export function AhorrosView({ ahorros = [], onOpenModal, onAportar, onDelAhorro 
 
             <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.hoja}26`, display: "flex", gap: 8 }}>
               <button onClick={() => onOpenModal(a)} style={{ flex: 1, padding: "10px 0", borderRadius: 99, border: "none", background: C.hojaSoft, color: C.inkOnHoja, fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                ✏️ Editar
+                <Icon name="edit" size={16} /> Editar
               </button>
               <button onClick={() => setAportarId(a.id)} style={{ flex: 1.3, padding: "10px 0", borderRadius: 99, border: "none", background: C.mentaSoft, color: C.inkSuccess, fontWeight: 900, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
                 + Aportar
               </button>
               <button aria-label="Eliminar" onClick={() => onDelAhorro(a.id)} style={{ width: 44, padding: "10px 0", borderRadius: 99, border: "none", background: C.coralSoft, color: C.inkDanger, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                🗑️
+                <Icon name="delete" size={18} />
               </button>
             </div>
           </div>

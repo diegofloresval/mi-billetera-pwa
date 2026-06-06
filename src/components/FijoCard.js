@@ -53,7 +53,7 @@ export function FijoCard({ f, onEdit, onDel, onToggle, onPagar }) {
       </div>
       <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.hoja}26`, display: "flex", flexDirection: "column", gap: 8 }}>
         {f.tipo === "cuotas" && rest > 0 && (
-          <button onClick={onPagar} style={{ width: "100%", padding: "11px 0", borderRadius: 99, border: "none", background: C.mentaSoft, color: C.inkSuccess, fontWeight: 900, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+          <button onClick={onPagar} style={{ width: "100%", padding: "11px 0", borderRadius: 99, border: "none", background: C.mentaSoft, color: C.inkSuccess, fontWeight: 900, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, boxShadow: `0 4px 12px ${C.menta}88` }}>
             <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check_circle</span> Pagar cuota
           </button>
         )}

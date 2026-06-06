@@ -4,7 +4,7 @@ import { fmt, monthLabel } from "../helpers";
 import { Icon } from "../components/Icon";
 
 const SEARCH_WRAP = { position: "relative", marginBottom: 12 };
-const SEARCH_ICON = { position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 14, pointerEvents: "none" };
+const SEARCH_ICON = { position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: C.ink2, pointerEvents: "none", display: "flex" };
 const SEARCH_INPUT = { width: "100%", boxSizing: "border-box", padding: "11px 14px 11px 38px", borderRadius: 99, border: `1.5px solid ${C.hojaSoft}`, background: C.card, color: C.ink, fontSize: 14, fontFamily: "inherit", outline: "none", boxShadow: `0 2px 8px ${C.hoja}1A` };
 
 export function MovimientosView({ mesesDisponibles, movMes, setMovMes, ingMovMesARS, gstMovMesARS, ingMovMesUSD, gstMovMesUSD, txsMes, mthInfo, onEditTx, onDelTx }) {
@@ -24,7 +24,7 @@ export function MovimientosView({ mesesDisponibles, movMes, setMovMes, ingMovMes
   return (
     <div className="fade-in" style={{ paddingTop: 8 }}>
       <div style={SEARCH_WRAP}>
-        <span style={SEARCH_ICON} aria-hidden="true">🔍</span>
+        <span style={SEARCH_ICON} aria-hidden="true"><Icon name="search" size={18} /></span>
         <input
           type="text"
           value={query}
