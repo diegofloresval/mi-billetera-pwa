@@ -1,11 +1,12 @@
 import { C } from "../constants";
 import { Icon } from "./Icon";
+import { ManekiNeko } from "./ManekiNeko";
 
 const TABS = [
   { id: "Home", icon: "home", label: "Inicio" },
   { id: "Movimientos", icon: "receipt_long", label: "Movim." },
   { id: "Fijos", icon: "calendar_today", label: "Fijos" },
-  { id: "Ahorros", icon: "savings", label: "Ahorros" },
+  { id: "Ahorros", icon: "maneki", label: "Ahorros" },
   { id: "Presupuesto", icon: "account_balance_wallet", label: "Presup." },
 ];
 
@@ -16,7 +17,9 @@ export function BottomNav({ tab, onChange }) {
         const active = tab === t.id;
         return (
           <button key={t.id} onClick={() => onChange(t.id)} className="btn-pill" style={{ background: active ? C.hojaSoft : "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "6px 10px", borderRadius: 16, color: active ? C.esmeralda : C.ink2 }}>
-            <Icon name={t.icon} size={22} filled={active} weight={active ? 600 : 400} />
+            {t.icon === "maneki"
+              ? <ManekiNeko size={26} style={{ opacity: active ? 1 : 0.7 }} />
+              : <Icon name={t.icon} size={22} filled={active} weight={active ? 600 : 400} />}
             <span style={{ fontSize: 10, fontWeight: active ? 800 : 600, fontFamily: "inherit" }}>{t.label}</span>
           </button>
         );

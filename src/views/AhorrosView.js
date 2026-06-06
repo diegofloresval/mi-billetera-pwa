@@ -95,7 +95,7 @@ export function AhorrosView({ ahorros = [], onOpenModal, onAportar, onDelAhorro 
 
       {ahorros.length === 0 && (
         <div style={{ textAlign: "center", marginTop: 60, padding: "0 20px" }}>
-          <div style={{ marginBottom: 10, display: "flex", justifyContent: "center" }}><ManekiNeko size={120} /></div>
+          <div style={{ marginBottom: 14, display: "flex", justifyContent: "center" }}><ManekiNeko size={180} /></div>
           <p style={{ color: C.ink, fontWeight: 800, fontSize: 16, marginBottom: 6 }}>Aún no tenés metas de ahorro</p>
           <p style={{ color: C.ink2, fontSize: 13, marginBottom: 20 }}>Creá tu primera meta y empezá a ahorrar para lo que quieras.</p>
           <button onClick={() => onOpenModal(null)} style={{ padding: "12px 22px", borderRadius: 99, border: "none", background: C.hoja, color: C.inkOnHoja, fontWeight: 800, fontSize: 14, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 8px 20px ${C.hoja}66` }}>
