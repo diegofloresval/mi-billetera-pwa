@@ -34,7 +34,7 @@ export default function App() {
   const [movMes, setMovMes] = useState(currentMonth());
   const fileInputRef = useRef(null);
 
-  const { txs, fijos, budgets, sueldo, nombre } = state;
+  const { txs, fijos, budgets, sueldo, nombre, customCats = [] } = state;
 
   useEffect(() => { onQuotaError((msg) => showToast(msg)); }, [onQuotaError]);
   useEffect(() => { onLoadWarning((msg) => showToast(msg)); }, [onLoadWarning]);
@@ -286,6 +286,9 @@ export default function App() {
               onBorrarTodo={borrarTodo}
               fileInputRef={fileInputRef}
               onFileChange={(e) => { const f = e.target.files?.[0]; if (f) importar(f); e.target.value = ""; }}
+              customCats={customCats}
+              onAddCustomCat={(cat) => upd({ customCats: [...customCats, cat] })}
+              onDelCustomCat={(id) => upd({ customCats: customCats.filter((c) => c.id !== id) })}
             />
           )}
         </div>
@@ -296,10 +299,12 @@ export default function App() {
         {showModal && (
           <TxModal
             modalType={modalType}
+            setModalType={setModalType}
             form={form}
             setForm={setForm}
             editId={editId}
             sueldo={sueldo}
+            customCats={customCats}
             onSubmit={submit}
             onClose={() => setShowModal(false)}
           />
@@ -310,6 +315,7 @@ export default function App() {
             fijoForm={fijoForm}
             setFijoForm={setFijoForm}
             editFijoId={editFijoId}
+            customCats={customCats}
             onSubmit={submitFijo}
             onClose={() => setShowFijoModal(false)}
           />

@@ -53,4 +53,11 @@ export const INITIAL_STATE = {
   budgets: DEFAULT_BUDGETS,
   sueldo: 0,
   nombre: "",
+  customCats: [],
 };
+
+export const CUSTOM_CAT_COLORS = [
+  "#E8854A", "#4A90D9", "#9B59B6", "#2ECC71",
+  "#E91E8C", "#F39C12", "#1ABC9C", "#E74C3C",
+  "#3498DB", "#8E44AD", "#27AE60", "#95A5A6",
+];

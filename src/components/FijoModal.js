@@ -5,7 +5,8 @@ const inp = (extra = {}) => ({
   ...extra,
 });
 
-export function FijoModal({ fijoForm, setFijoForm, editFijoId, onSubmit, onClose }) {
+export function FijoModal({ fijoForm, setFijoForm, editFijoId, customCats = [], onSubmit, onClose }) {
+  const allCats = [...CATS, ...customCats];
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(45,36,56,.45)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={onClose}>
       <div className="slide-up" style={{ width: "100%", maxWidth: 430, background: C.card, borderRadius: "28px 28px 0 0", padding: "24px 20px calc(env(safe-area-inset-bottom) + 32px)", maxHeight: "92dvh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
@@ -42,7 +43,7 @@ export function FijoModal({ fijoForm, setFijoForm, editFijoId, onSubmit, onClose
         </div>
         <p style={{ fontSize: 11, fontWeight: 800, color: C.ink2, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>Categoría</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 22 }}>
-          {CATS.map((c) => <button key={c.id} className="btn-pill" onClick={() => setFijoForm({ ...fijoForm, cat: c.id })} style={{ padding: "8px 14px", borderRadius: 99, border: "none", background: fijoForm.cat === c.id ? `${c.color}22` : C.lavandaSoft, color: fijoForm.cat === c.id ? c.color : C.ink, fontSize: 13, fontWeight: 800 }}>{c.emoji} {c.label}</button>)}
+          {allCats.map((c) => <button key={c.id} className="btn-pill" onClick={() => setFijoForm({ ...fijoForm, cat: c.id })} style={{ padding: "8px 14px", borderRadius: 99, border: "none", background: fijoForm.cat === c.id ? `${c.color}22` : C.lavandaSoft, color: fijoForm.cat === c.id ? c.color : C.ink, fontSize: 13, fontWeight: 800 }}>{c.emoji} {c.label}</button>)}
         </div>
         <button onClick={onSubmit} style={{ width: "100%", padding: 16, borderRadius: 18, border: "none", background: C.lavanda, color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 8px 20px ${C.lavanda}55` }}>
           {editFijoId ? "Guardar cambios" : "Agregar gasto fijo"}

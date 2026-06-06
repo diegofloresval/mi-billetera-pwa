@@ -1,5 +1,7 @@
-import { C } from "../constants";
+import { useState } from "react";
+import { C, CUSTOM_CAT_COLORS } from "../constants";
 import { Icon } from "../components/Icon";
+import { uid } from "../helpers";
 
 const S = {
   root: { paddingTop: 12 },
@@ -24,15 +26,82 @@ const S = {
   aboutEmoji: { fontSize: 32 },
   aboutTitle: { fontWeight: 900, fontSize: 16, color: "#6B46C1", marginTop: 4 },
   aboutSub: { fontSize: 12, color: "#6B46C1", marginTop: 2, opacity: 0.85 },
+  catCard: { background: C.card, borderRadius: 20, padding: "14px 16px", marginBottom: 22, boxShadow: `0 4px 14px ${C.lavanda}10` },
+  catRow: { display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: `1px solid ${C.lavandaSoft}` },
+  catEmojiCircle: { width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 },
+  catLabel: { flex: 1, fontWeight: 700, fontSize: 14, color: C.ink },
+  catDelBtn: { border: "none", background: "transparent", color: "#D4587E", cursor: "pointer", padding: 6, display: "flex", alignItems: "center" },
+  catEmpty: { fontSize: 12, color: C.ink2, padding: "6px 0 10px" },
+  formRow: { display: "flex", gap: 8, alignItems: "center", marginTop: 12 },
+  emojiInput: { width: 48, height: 40, borderRadius: 12, border: `1.5px solid ${C.lavandaSoft}`, textAlign: "center", fontSize: 20, padding: 0, color: C.ink, background: "#fff" },
+  labelInput: { flex: 1, height: 40, borderRadius: 12, border: `1.5px solid ${C.lavandaSoft}`, padding: "0 12px", fontSize: 14, color: C.ink, background: "#fff" },
+  colorSelect: { height: 40, borderRadius: 12, border: `1.5px solid ${C.lavandaSoft}`, padding: "0 8px", fontSize: 14, background: "#fff", color: C.ink },
+  addBtn: { marginTop: 10, width: "100%", padding: "10px 16px", borderRadius: 99, border: "none", background: C.lavanda, color: "#fff", fontWeight: 800, fontSize: 13, cursor: "pointer" },
+  addBtnDisabled: { marginTop: 10, width: "100%", padding: "10px 16px", borderRadius: 99, border: "none", background: C.lavandaSoft, color: "#6B46C1", fontWeight: 800, fontSize: 13, cursor: "not-allowed", opacity: 0.7 },
 };
 
-export function AjustesView({ nombre, onChangeNombre, onExport, onImportClick, onBorrarTodo, fileInputRef, onFileChange }) {
+export function AjustesView({ nombre, onChangeNombre, onExport, onImportClick, onBorrarTodo, fileInputRef, onFileChange, customCats = [], onAddCustomCat, onDelCustomCat }) {
+  const [emoji, setEmoji] = useState("");
+  const [label, setLabel] = useState("");
+  const [color, setColor] = useState(CUSTOM_CAT_COLORS[0]);
+
+  const canAdd = emoji.trim() && label.trim();
+
+  const handleAdd = () => {
+    if (!canAdd) return;
+    const e = Array.from(emoji.trim())[0] || emoji.trim();
+    onAddCustomCat?.({ id: uid(), label: label.trim(), emoji: e, color, custom: true });
+    setEmoji(""); setLabel(""); setColor(CUSTOM_CAT_COLORS[0]);
+  };
+
   return (
     <div className="fade-in" style={S.root}>
       <p style={S.sectionLabel}>Perfil</p>
       <div style={S.profileCard}>
         <p style={S.fieldLabel}>Tu nombre</p>
         <input value={nombre} onChange={(e) => onChangeNombre(e.target.value)} placeholder="¿Cómo te llamás?" style={S.nameInput} />
+      </div>
+
+      <p style={S.sectionLabel}>🏷️ Mis categorías</p>
+      <div style={S.catCard}>
+        {customCats.length === 0 ? (
+          <p style={S.catEmpty}>Todavía no agregaste categorías propias.</p>
+        ) : (
+          customCats.map((c) => (
+            <div key={c.id} style={S.catRow}>
+              <div style={{ ...S.catEmojiCircle, background: c.color + "22", color: c.color }}>{c.emoji}</div>
+              <span style={S.catLabel}>{c.label}</span>
+              <button onClick={() => onDelCustomCat?.(c.id)} style={S.catDelBtn} aria-label="Eliminar categoría">
+                <Icon name="delete" size={20} />
+              </button>
+            </div>
+          ))
+        )}
+        <div style={S.formRow}>
+          <input
+            value={emoji}
+            onChange={(e) => setEmoji(e.target.value)}
+            placeholder="🎯"
+            maxLength={4}
+            style={S.emojiInput}
+            aria-label="Emoji"
+          />
+          <input
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            placeholder="Nombre"
+            style={S.labelInput}
+            aria-label="Nombre"
+          />
+          <select value={color} onChange={(e) => setColor(e.target.value)} style={S.colorSelect} aria-label="Color">
+            {CUSTOM_CAT_COLORS.map((c) => (
+              <option key={c} value={c} style={{ color: c }}>{c}</option>
+            ))}
+          </select>
+        </div>
+        <button onClick={handleAdd} disabled={!canAdd} style={canAdd ? S.addBtn : S.addBtnDisabled} className="btn-pill">
+          Agregar categoría
+        </button>
       </div>
 
       <p style={S.sectionLabel}>Datos</p>

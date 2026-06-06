@@ -3,13 +3,14 @@ import { STORE_KEY, CAT, INITIAL_STATE } from "./constants";
 const isValidYmd = (s) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
 const isValidYm = (s) => typeof s === "string" && /^\d{4}-\d{2}$/.test(s);
 
-const sanitizeTx = (t) => {
+const sanitizeTx = (t, validCatIds) => {
   if (!t || typeof t !== "object") return null;
   const monto = Number(t.monto);
   if (!Number.isFinite(monto) || monto < 0) return null;
   if (!isValidYmd(t.fecha)) return null;
   const type = t.type === "ingreso" ? "ingreso" : "gasto";
-  const cat = type === "ingreso" ? "ingreso" : (CAT[t.cat] ? t.cat : "otro");
+  const catOk = validCatIds ? validCatIds.has(t.cat) : !!CAT[t.cat];
+  const cat = type === "ingreso" ? "ingreso" : (catOk ? t.cat : "otro");
   return {
     id: typeof t.id === "string" && t.id ? t.id : Math.random().toString(36).slice(2, 9),
     type,
@@ -21,17 +22,18 @@ const sanitizeTx = (t) => {
   };
 };
 
-const sanitizeFijo = (f) => {
+const sanitizeFijo = (f, validCatIds) => {
   if (!f || typeof f !== "object") return null;
   const monto = Number(f.monto);
   if (!Number.isFinite(monto) || monto < 0) return null;
   if (typeof f.desc !== "string" || !f.desc) return null;
   const tipo = f.tipo === "cuotas" ? "cuotas" : "mensual";
+  const catOk = validCatIds ? validCatIds.has(f.cat) : !!CAT[f.cat];
   return {
     id: typeof f.id === "string" && f.id ? f.id : Math.random().toString(36).slice(2, 9),
     desc: f.desc,
     monto,
-    cat: CAT[f.cat] ? f.cat : "otro",
+    cat: catOk ? f.cat : "otro",
     method: typeof f.method === "string" ? f.method : "debito",
     tipo,
     activo: f.activo !== false,
@@ -42,13 +44,25 @@ const sanitizeFijo = (f) => {
   };
 };
 
+const sanitizeCustomCat = (c) => {
+  if (!c || typeof c !== "object") return null;
+  if (typeof c.id !== "string" || !c.id) return null;
+  if (typeof c.label !== "string" || !c.label) return null;
+  if (typeof c.emoji !== "string" || !c.emoji) return null;
+  if (typeof c.color !== "string" || !c.color) return null;
+  return { id: c.id, label: c.label, emoji: c.emoji, color: c.color, custom: true };
+};
+
 export const sanitizeState = (raw) => {
   if (!raw || typeof raw !== "object") return { state: { ...INITIAL_STATE }, dropped: 0 };
   const txsIn = Array.isArray(raw.txs) ? raw.txs : [];
   const fijosIn = Array.isArray(raw.fijos) ? raw.fijos : [];
-  const txs = txsIn.map(sanitizeTx).filter(Boolean);
-  const fijos = fijosIn.map(sanitizeFijo).filter(Boolean);
-  const dropped = (txsIn.length - txs.length) + (fijosIn.length - fijos.length);
+  const customCatsIn = Array.isArray(raw.customCats) ? raw.customCats : [];
+  const customCats = customCatsIn.map(sanitizeCustomCat).filter(Boolean);
+  const validCatIds = new Set([...Object.keys(CAT), ...customCats.map((c) => c.id)]);
+  const txs = txsIn.map((t) => sanitizeTx(t, validCatIds)).filter(Boolean);
+  const fijos = fijosIn.map((f) => sanitizeFijo(f, validCatIds)).filter(Boolean);
+  const dropped = (txsIn.length - txs.length) + (fijosIn.length - fijos.length) + (customCatsIn.length - customCats.length);
   return {
     state: {
       ...INITIAL_STATE,
@@ -57,6 +71,7 @@ export const sanitizeState = (raw) => {
       budgets: raw.budgets && typeof raw.budgets === "object" ? { ...INITIAL_STATE.budgets, ...raw.budgets } : INITIAL_STATE.budgets,
       sueldo: Number.isFinite(Number(raw.sueldo)) ? Number(raw.sueldo) : 0,
       nombre: typeof raw.nombre === "string" ? raw.nombre : "",
+      customCats,
     },
     dropped,
   };
@@ -127,4 +142,30 @@ export const fijoActivoEsteMes = (f, ym = currentMonth()) => {
 export const cuotaLabel = (f) => {
   const rest = f.cuotasTotales - f.cuotasPagadas;
   return `Cuota ${f.cuotasPagadas + 1}/${f.cuotasTotales} · quedan ${rest}`;
+};
+
+const GUESS_RULES = [
+  { cat: "supermercado", patterns: ["super", "coto", "disco", "jumbo", "carrefour", "walmart", "mercado", "🛒"] },
+  { cat: "transporte",   patterns: ["uber", "cabify", "taxi", "nafta", "combustible", "subte", "colectivo", "bondi", "sube", "🚌", "🚗", "⛽"] },
+  { cat: "ocio",         patterns: ["cine", "netflix", "spotify", "juego", "joystick", "🎮", "🎬"] },
+  { cat: "salud",        patterns: ["farmacia", "medico", "doctor", "hospital", "💊"] },
+  { cat: "ropa",         patterns: ["zara", "adidas", "nike", "remera", "pantalon", "👟", "👕"] },
+  { cat: "casa",         patterns: ["alquiler", "expensas", "🏠"] },
+  { cat: "educacion",    patterns: ["curso", "libro", "universidad", "📚"] },
+  { cat: "restaurante",  patterns: ["resto", "pizza", "hamburguesa", "sushi", "🍕", "🍔", "🍣"] },
+  { cat: "servicios",    patterns: ["luz", "agua", "gas", "internet", "edesur", "💡"] },
+  { cat: "suscripcion",  patterns: ["suscripcion", "membresia", "📱"] },
+  { cat: "gym",          patterns: ["gym", "gimnasio", "smartfit", "🏋"] },
+];
+
+export const guessCat = (desc) => {
+  if (typeof desc !== "string") return null;
+  const s = desc.toLowerCase().trim();
+  if (!s) return null;
+  for (const rule of GUESS_RULES) {
+    for (const p of rule.patterns) {
+      if (s.includes(p)) return rule.cat;
+    }
+  }
+  return null;
 };
