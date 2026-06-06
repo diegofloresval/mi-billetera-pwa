@@ -37,7 +37,7 @@ export function MovimientosView({ mesesDisponibles, movMes, setMovMes, ingMovMes
 
       <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 6, marginBottom: 12 }}>
         {mesesDisponibles.map((ym) => (
-          <button key={ym} className="btn-pill" onClick={() => setMovMes(ym)} style={{ flexShrink: 0, padding: "8px 16px", borderRadius: 99, border: "none", background: movMes === ym ? C.hoja : C.card, color: movMes === ym ? "#fff" : C.ink, fontWeight: 800, fontSize: 13, cursor: "pointer", boxShadow: movMes === ym ? `0 4px 14px ${C.hoja}66` : `0 2px 8px ${C.hoja}1A` }}>
+          <button key={ym} className="btn-pill" onClick={() => setMovMes(ym)} style={{ flexShrink: 0, padding: "8px 16px", borderRadius: 99, border: "none", background: movMes === ym ? C.hoja : C.card, color: movMes === ym ? C.inkOnHoja : C.ink, fontWeight: 800, fontSize: 13, cursor: "pointer", boxShadow: movMes === ym ? `0 4px 14px ${C.hoja}66` : `0 2px 8px ${C.hoja}1A` }}>
             {monthLabel(ym).split(" ")[0]}
           </button>
         ))}

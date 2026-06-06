@@ -34,7 +34,7 @@ export function AportarModal({ ahorro, onConfirm, onClose }) {
         <input autoFocus type="number" placeholder="0" value={monto} onChange={(e) => setMonto(e.target.value)} style={{ ...S.inputBase, ...S.inputMonto }} />
         <p style={S.labelMicro}>Fecha</p>
         <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} style={{ ...S.inputBase, ...S.inputFecha }} />
-        <button onClick={confirm} disabled={!valid} style={{ width: "100%", padding: 14, borderRadius: 16, border: "none", background: ahorro.color, color: "#fff", fontSize: 15, fontWeight: 800, cursor: valid ? "pointer" : "not-allowed", fontFamily: "inherit", boxShadow: valid ? `0 6px 16px ${ahorro.color}66` : "none", opacity: valid ? 1 : 0.5 }}>
+        <button onClick={confirm} disabled={!valid} style={{ width: "100%", padding: 14, borderRadius: 16, border: "none", background: ahorro.color, color: C.inkOnHoja, fontSize: 15, fontWeight: 800, cursor: valid ? "pointer" : "not-allowed", fontFamily: "inherit", boxShadow: valid ? `0 6px 16px ${ahorro.color}66` : "none", opacity: valid ? 1 : 0.5 }}>
           Confirmar aporte
         </button>
       </div>

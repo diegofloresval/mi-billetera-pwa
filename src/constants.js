@@ -5,7 +5,7 @@ export const C = {
   bg:        "#F8F6EE",
   card:      "#FFFFFF",
   ink:       "#1A3D2A",
-  ink2:      "#6B8A77",
+  ink2:      "#4F7359",
 
   // marca verde
   esmeralda:     "#007A3D",

@@ -10,7 +10,7 @@ const S = {
   labelMicro: { fontSize: 11, fontWeight: 800, color: C.ink2, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 },
   pillRow: { display: "flex", gap: 8, marginBottom: 16 },
   colorRow: { display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 22 },
-  submit: { width: "100%", padding: 16, borderRadius: 18, border: "none", background: C.hoja, color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 8px 20px ${C.hoja}66` },
+  submit: { width: "100%", padding: 16, borderRadius: 18, border: "none", background: C.hoja, color: C.inkOnHoja, fontSize: 16, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 8px 20px ${C.hoja}66` },
 };
 
 export function AhorroModal({ ahorroForm, setAhorroForm, editAhorroId, onSubmit, onClose }) {
@@ -25,7 +25,7 @@ export function AhorroModal({ ahorroForm, setAhorroForm, editAhorroId, onSubmit,
         {CURRENCIES.map((cur) => {
           const active = (ahorroForm.currency || "ARS") === cur.id;
           return (
-            <button key={cur.id} className="btn-pill" onClick={() => setAhorroForm({ ...ahorroForm, currency: cur.id })} style={{ flex: 1, padding: "10px 14px", borderRadius: 99, border: "none", background: active ? C.hoja : C.hojaSoft, color: active ? "#fff" : C.ink, fontSize: 13, fontWeight: 800, fontFamily: "inherit", cursor: "pointer" }}>{cur.symbol} {cur.id}</button>
+            <button key={cur.id} className="btn-pill" onClick={() => setAhorroForm({ ...ahorroForm, currency: cur.id })} style={{ flex: 1, padding: "10px 14px", borderRadius: 99, border: "none", background: active ? C.hoja : C.hojaSoft, color: active ? C.inkOnHoja : C.ink, fontSize: 13, fontWeight: 800, fontFamily: "inherit", cursor: "pointer" }}>{cur.symbol} {cur.id}</button>
           );
         })}
       </div>

@@ -15,7 +15,7 @@ const S = {
   variantBox: { minHeight: 150 },
   cuotasGrid: { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 },
   catGrid: { display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 22 },
-  submit: { width: "100%", padding: 16, borderRadius: 18, border: "none", background: C.hoja, color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 8px 20px ${C.hoja}66` },
+  submit: { width: "100%", padding: 16, borderRadius: 18, border: "none", background: C.hoja, color: C.inkOnHoja, fontSize: 16, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 8px 20px ${C.hoja}66` },
 };
 
 const TIPOS = [{ id: "mensual", label: "🔄 Mensual" }, { id: "cuotas", label: "⏳ Cuotas" }];
@@ -33,14 +33,14 @@ export function FijoModal({ fijoForm, setFijoForm, editFijoId, customCats = [], 
         {CURRENCIES.map((cur) => {
           const active = (fijoForm.currency || "ARS") === cur.id;
           return (
-            <button key={cur.id} className="btn-pill" onClick={() => setFijoForm({ ...fijoForm, currency: cur.id })} style={{ flex: 1, padding: "10px 14px", borderRadius: 99, border: "none", background: active ? C.hoja : C.hojaSoft, color: active ? "#fff" : C.ink, fontSize: 13, fontWeight: 800, fontFamily: "inherit", cursor: "pointer" }}>{cur.symbol} {cur.id}</button>
+            <button key={cur.id} className="btn-pill" onClick={() => setFijoForm({ ...fijoForm, currency: cur.id })} style={{ flex: 1, padding: "10px 14px", borderRadius: 99, border: "none", background: active ? C.hoja : C.hojaSoft, color: active ? C.inkOnHoja : C.ink, fontSize: 13, fontWeight: 800, fontFamily: "inherit", cursor: "pointer" }}>{cur.symbol} {cur.id}</button>
           );
         })}
       </div>
       <p style={S.labelMicro}>Tipo</p>
       <div style={S.typeRow}>
         {TIPOS.map((t) => (
-          <button key={t.id} className="btn-pill" onClick={() => setFijoForm({ ...fijoForm, tipo: t.id })} style={{ flex: 1, padding: "12px 8px", borderRadius: 16, border: "none", background: fijoForm.tipo === t.id ? C.hoja : C.hojaSoft, color: fijoForm.tipo === t.id ? "#fff" : C.ink, fontSize: 13, fontWeight: 800 }}>{t.label}</button>
+          <button key={t.id} className="btn-pill" onClick={() => setFijoForm({ ...fijoForm, tipo: t.id })} style={{ flex: 1, padding: "12px 8px", borderRadius: 16, border: "none", background: fijoForm.tipo === t.id ? C.hoja : C.hojaSoft, color: fijoForm.tipo === t.id ? C.inkOnHoja : C.ink, fontSize: 13, fontWeight: 800 }}>{t.label}</button>
         ))}
       </div>
       <div style={S.variantBox}>
@@ -51,7 +51,7 @@ export function FijoModal({ fijoForm, setFijoForm, editFijoId, customCats = [], 
         {fijoForm.tipo === "cuotas" && <>
           <p style={S.labelMicro}>Cantidad de cuotas</p>
           <div style={S.cuotasGrid}>
-            {CUOTAS_OPS.map((n) => <button key={n} className="btn-pill" onClick={() => setFijoForm({ ...fijoForm, cuotasTotales: n })} style={{ width: 52, height: 42, borderRadius: 14, border: "none", background: fijoForm.cuotasTotales === n ? C.coral : C.coralSoft, color: fijoForm.cuotasTotales === n ? "#fff" : C.inkDanger, fontWeight: 900, fontSize: 13 }}>{n}x</button>)}
+            {CUOTAS_OPS.map((n) => <button key={n} className="btn-pill" onClick={() => setFijoForm({ ...fijoForm, cuotasTotales: n })} style={{ width: 52, height: 42, borderRadius: 14, border: "none", background: fijoForm.cuotasTotales === n ? C.coral : C.coralSoft, color: C.inkDanger, fontWeight: 900, fontSize: 13 }}>{n}x</button>)}
           </div>
           <p style={S.labelSmall}>Mes de inicio</p>
           <input type="month" value={fijoForm.desde} onChange={(e) => setFijoForm({ ...fijoForm, desde: e.target.value })} {...inp()} />
@@ -59,7 +59,7 @@ export function FijoModal({ fijoForm, setFijoForm, editFijoId, customCats = [], 
       </div>
       <p style={S.labelMicro}>Método de pago</p>
       <div style={S.pillRowWrap}>
-        {METHODS.map((m) => <button key={m.id} className="btn-pill" onClick={() => setFijoForm({ ...fijoForm, method: m.id })} style={{ padding: "9px 14px", borderRadius: 99, border: "none", background: fijoForm.method === m.id ? (m.id === "credito" ? C.coral : C.hoja) : C.hojaSoft, color: fijoForm.method === m.id ? "#fff" : C.ink, fontSize: 13, fontWeight: 800 }}>{m.icon} {m.label}</button>)}
+        {METHODS.map((m) => <button key={m.id} className="btn-pill" onClick={() => setFijoForm({ ...fijoForm, method: m.id })} style={{ padding: "9px 14px", borderRadius: 99, border: "none", background: fijoForm.method === m.id ? (m.id === "credito" ? C.coral : C.hoja) : C.hojaSoft, color: fijoForm.method === m.id ? (m.id === "credito" ? C.inkDanger : C.inkOnHoja) : C.ink, fontSize: 13, fontWeight: 800 }}>{m.icon} {m.label}</button>)}
       </div>
       <p style={S.labelMicro}>Categoría</p>
       <div style={S.catGrid}>

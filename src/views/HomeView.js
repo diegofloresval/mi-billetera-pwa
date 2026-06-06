@@ -8,7 +8,7 @@ const TOGGLE_WRAP = { display: "inline-flex", background: C.bg, borderRadius: 99
 const TOGGLE_BTN = (active, disabled) => ({
   border: "none",
   background: active ? C.hoja : "transparent",
-  color: active ? "#fff" : (disabled ? `${C.ink2}88` : C.ink),
+  color: active ? C.inkOnHoja : (disabled ? `${C.ink2}88` : C.ink),
   fontWeight: 800,
   fontSize: 11,
   padding: "6px 12px",
