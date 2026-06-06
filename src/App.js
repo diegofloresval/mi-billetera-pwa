@@ -258,7 +258,7 @@ export default function App() {
 
   const mthInfo = (id) => METHODS.find((m) => m.id === id) || METHODS[0];
   const activosFijos = useMemo(() => fijos.filter((f) => fijoActivoEsteMes(f, cm)), [fijos, cm]);
-  const inactivosFijos = fijos.filter((f) => !fijoActivoEsteMes(f, cm));
+  const inactivosFijos = useMemo(() => fijos.filter((f) => !fijoActivoEsteMes(f, cm)), [fijos, cm]);
 
   const exportar = () => {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
