@@ -11,7 +11,10 @@ export function TxModal({ modalType, form, setForm, editId, sueldo, onSubmit, on
     <div style={{ position: "fixed", inset: 0, background: "rgba(45,36,56,.45)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={onClose}>
       <div className="slide-up" style={{ width: "100%", maxWidth: 430, background: C.card, borderRadius: "28px 28px 0 0", padding: "24px 20px calc(env(safe-area-inset-bottom) + 32px)", maxHeight: "92dvh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
         <div style={{ width: 44, height: 5, borderRadius: 99, background: C.lavandaSoft, margin: "0 auto 22px" }} />
-        <p style={{ fontWeight: 800, fontSize: 19, color: C.ink, marginBottom: 22 }}>{modalType === "ingreso" ? "💰 Agregar ingreso" : modalType === "sueldo" ? "💼 Mi sueldo" : `${editId ? "✏️ Editar" : "➕ Nuevo"} gasto`}</p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22 }}>
+          <p style={{ fontWeight: 800, fontSize: 19, color: C.ink }}>{modalType === "ingreso" ? "💰 Agregar ingreso" : modalType === "sueldo" ? "💼 Mi sueldo" : `${editId ? "✏️ Editar" : "➕ Nuevo"} gasto`}</p>
+          <button onClick={onClose} aria-label="Cerrar" style={{ border: "none", background: "transparent", color: C.ink2, fontSize: 22, cursor: "pointer", padding: 4, aspectRatio: "1 / 1", fontFamily: "inherit", lineHeight: 1 }}>✕</button>
+        </div>
         {modalType === "sueldo" ? (
           <><p style={{ fontSize: 13, color: C.ink2, marginBottom: 10 }}>Actual: <strong style={{ color: C.ink }}>{fmt(sueldo)}</strong></p>
             <input placeholder="Nuevo sueldo" type="number" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} {...inp()} /></>

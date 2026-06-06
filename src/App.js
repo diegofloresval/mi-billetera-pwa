@@ -291,7 +291,7 @@ export default function App() {
         </div>
 
         <BottomNav tab={tab} onChange={setTab} />
-        <Fab onClick={() => openModal("gasto")} />
+        <Fab onClick={() => tab === "Fijos" ? openFijoModal() : openModal("gasto")} />
 
         {showModal && (
           <TxModal

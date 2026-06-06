@@ -51,9 +51,6 @@ export function TopBar({ tab, nombre, cm, onAddIngreso, onAddSueldo, onAddFijo }
           <button aria-label="Buscar" className="btn-pill" style={S.searchBtn}>
             <Icon name="search" size={22} weight={600} />
           </button>
-          <div aria-hidden="true" style={S.avatar}>
-            {(nombre || "D").trim().charAt(0).toUpperCase()}
-          </div>
         </div>
       )}
       {tab === "Fijos" && (
