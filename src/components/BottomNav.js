@@ -27,8 +27,11 @@ export function BottomNav({ tab, onChange }) {
 
 export function Fab({ onClick, activeTab }) {
   const label = activeTab === "Fijos" ? "Agregar gasto fijo" : activeTab === "Ahorros" ? "Crear meta de ahorro" : "Agregar gasto";
+  const isHoja = activeTab === "Fijos" || activeTab === "Ahorros";
+  const bg = isHoja ? C.hoja : C.coral;
+  const fg = isHoja ? C.inkOnHoja : C.inkDanger;
   return (
-    <button aria-label={label} className="btn-pill" onClick={onClick} style={{ position: "fixed", bottom: "calc(env(safe-area-inset-bottom) + 96px)", right: "max(20px, calc(50% - 215px + 20px))", width: 60, height: 60, borderRadius: "50%", border: "none", background: C.coral, color: "#fff", cursor: "pointer", boxShadow: `0 12px 28px ${C.coral}99`, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 101 }}>
+    <button aria-label={label} className="btn-pill" onClick={onClick} style={{ position: "fixed", bottom: "calc(env(safe-area-inset-bottom) + 96px)", right: "max(20px, calc(50% - 215px + 20px))", width: 60, height: 60, borderRadius: "50%", border: "none", background: bg, color: fg, cursor: "pointer", boxShadow: `0 12px 28px ${bg}88`, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 101 }}>
       <Icon name="add" size={30} weight={700} />
     </button>
   );

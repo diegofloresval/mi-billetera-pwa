@@ -1,6 +1,9 @@
 import { C } from "../constants";
 import { saludo, monthLabel } from "../helpers";
 import { Icon } from "../components/Icon";
+import { ManekiNeko } from "../components/ManekiNeko";
+
+const TITLE_AHORROS = { display: "inline-flex", alignItems: "center", gap: 8 };
 
 const S = {
   wrap: { background: C.bg, padding: "calc(env(safe-area-inset-top) + 18px) 22px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, position: "sticky", top: 0, zIndex: 50 },
@@ -11,23 +14,28 @@ const S = {
   actions: { display: "flex", gap: 10, flexShrink: 0 },
   actionsAligned: { display: "flex", gap: 10, flexShrink: 0, alignItems: "center" },
   circleBtnBase: { width: 42, height: 42, borderRadius: "50%", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
-  ingresoBtn: { width: 42, height: 42, borderRadius: "50%", border: "none", background: C.hoja, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 16px ${C.hoja}66` },
+  ingresoBtn: { width: 42, height: 42, borderRadius: "50%", border: "none", background: C.hoja, color: C.inkOnHoja, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 16px ${C.hoja}66` },
   sueldoBtn: { width: 42, height: 42, borderRadius: "50%", border: "none", background: C.menta, color: C.inkOnHoja, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 16px ${C.menta}88` },
   avatar: { width: 42, height: 42, borderRadius: "50%", background: C.hojaSoft, border: `2px solid ${C.hoja}`, display: "flex", alignItems: "center", justifyContent: "center", color: C.esmeralda, fontWeight: 900, fontSize: 16 },
-  addFijoBtn: { flexShrink: 0, padding: "11px 18px", borderRadius: 99, border: "none", background: C.hoja, color: "#fff", fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6, boxShadow: `0 6px 18px ${C.hoja}66` },
+  addFijoBtn: { flexShrink: 0, padding: "11px 18px", borderRadius: 99, border: "none", background: C.hoja, color: C.inkOnHoja, fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6, boxShadow: `0 6px 18px ${C.hoja}66` },
   settingsBtn: { width: 42, height: 42, borderRadius: "50%", border: "none", background: C.hojaSoft, color: C.inkOnHoja, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
 };
 
 export function TopBar({ tab, nombre, cm, onAddIngreso, onAddSueldo, onAddFijo, onOpenAjustes }) {
   return (
     <div style={S.wrap}>
+      {tab === "Home" && (
+        <div style={S.avatar} aria-hidden="true">
+          {nombre ? nombre.trim().charAt(0).toUpperCase() : <ManekiNeko size={22} />}
+        </div>
+      )}
       <div style={S.titleBox}>
         <p style={S.title}>
           {tab === "Home" ? (nombre ? `¡Hola, ${nombre}! 👋` : "¡Hola! 👋")
             : tab === "Movimientos" ? "Movimientos"
             : tab === "Fijos" ? "📌 Gastos fijos"
             : tab === "Presupuesto" ? "Presupuesto"
-            : tab === "Ahorros" ? "🐷 Ahorros"
+            : tab === "Ahorros" ? (<span style={TITLE_AHORROS}><ManekiNeko size={20} /> Ahorros</span>)
             : "⚙️ Ajustes"}
         </p>
         {tab === "Home" && (

@@ -5,7 +5,7 @@ export const C = {
   bg:        "#F8F6EE",
   card:      "#FFFFFF",
   ink:       "#1A3D2A",
-  ink2:      "#6B8A77",
+  ink2:      "#4F7359",
 
   // marca verde
   esmeralda:     "#007A3D",
@@ -23,15 +23,6 @@ export const C = {
   inkSuccess: "#007A3D",
   inkOnHoja:  "#0F5C2C",
   inkDanger:  "#A8324E",
-
-  // alias retrocompatible: muchos archivos siguen leyendo C.lavanda/C.creme/C.celeste.
-  // los mapeamos al nuevo lenguaje verde así no rompen mientras se migra cada archivo.
-  lavanda:     "#73C653",
-  lavandaSoft: "#E3F4D6",
-  creme:       "#BEF8AD",
-  cremeSoft:   "#EBFAE4",
-  celeste:     "#D9EFE2",
-  celesteSoft: "#EBFAE4",
 };
 
 export const CATS = [
@@ -49,7 +40,7 @@ export const CATS = [
   { id: "otro",         label: "Otro",         emoji: "📦", color: C.menta },
 ];
 
-export const AHORRO_CAT = { id: "ahorro", label: "Ahorro", emoji: "🐷", color: C.hoja };
+export const AHORRO_CAT = { id: "ahorro", label: "Ahorro", emoji: "🐱", color: C.hoja };
 
 export const CAT = Object.fromEntries([...CATS, AHORRO_CAT].map((c) => [c.id, c]));
 

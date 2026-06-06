@@ -3,12 +3,13 @@ import { C, CAT } from "../constants";
 import { fmt, cuotaLabel } from "../helpers";
 import { Icon } from "../components/Icon";
 import { AnimNumber } from "../components/AnimNumber";
+import { ManekiNeko } from "../components/ManekiNeko";
 
 const TOGGLE_WRAP = { display: "inline-flex", background: C.bg, borderRadius: 99, padding: 3, gap: 2 };
 const TOGGLE_BTN = (active, disabled) => ({
   border: "none",
   background: active ? C.hoja : "transparent",
-  color: active ? "#fff" : (disabled ? `${C.ink2}88` : C.ink),
+  color: active ? C.inkOnHoja : (disabled ? `${C.ink2}88` : C.ink),
   fontWeight: 800,
   fontSize: 11,
   padding: "6px 12px",
@@ -40,7 +41,7 @@ export function HomeView({
 
   return (
     <div className="fade-in">
-      <div style={{ background: C.card, borderRadius: 28, padding: "22px 22px", marginTop: 16, position: "relative", overflow: "hidden", boxShadow: `0 10px 32px ${C.hoja}33` }}>
+      <div style={{ background: C.card, borderRadius: 28, padding: "22px 22px", marginTop: 16, position: "relative", overflow: "hidden", boxShadow: `0 10px 32px ${C.hoja}55` }}>
         <div style={{ position: "relative", zIndex: 2 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, flexWrap: "wrap" }}>
             <p style={{ color: C.ink2, fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase", fontWeight: 800 }}>Balance del mes</p>
@@ -72,7 +73,7 @@ export function HomeView({
             <p style={{ fontSize: 10, color: C.ink2, marginTop: 10, fontWeight: 600 }}>USD convertido a {fmt(fxRate.USD_ARS)} / US$1</p>
           )}
         </div>
-        <div style={{ position: "absolute", right: -8, bottom: -16, opacity: 0.22, pointerEvents: "none", zIndex: 1 }}>
+        <div style={{ position: "absolute", right: -8, bottom: -16, opacity: 0.28, pointerEvents: "none", zIndex: 1 }}>
           <Icon name="eco" size={120} filled weight={400} color={C.hoja} />
         </div>
         <div style={{ position: "absolute", right: 28, top: 22, opacity: 0.35, pointerEvents: "none", transform: "rotate(12deg)", zIndex: 1 }}>
@@ -82,7 +83,7 @@ export function HomeView({
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 14 }}>
         <div style={{ background: C.menta, borderRadius: 24, padding: "18px 18px", display: "flex", flexDirection: "column", gap: 12, boxShadow: `0 8px 22px ${C.menta}55` }}>
-          <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(255,255,255,.35)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+          <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(255,255,255,.6)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
             <Icon name="north_east" size={20} weight={700} />
           </div>
           <div>
@@ -94,7 +95,7 @@ export function HomeView({
           </div>
         </div>
         <div style={{ background: C.coral, borderRadius: 24, padding: "18px 18px", display: "flex", flexDirection: "column", gap: 12, boxShadow: `0 8px 22px ${C.coral}55` }}>
-          <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(255,255,255,.35)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+          <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(255,255,255,.6)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
             <Icon name="south_west" size={20} weight={700} />
           </div>
           <div>
@@ -110,7 +111,7 @@ export function HomeView({
       {activosFijos.length > 0 && (
         <div style={{ marginTop: 22 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <p style={{ fontWeight: 800, fontSize: 18, color: C.ink }}>📌 Fijos del mes</p>
+            <p style={{ fontWeight: 800, fontSize: 18, color: C.ink, display: "inline-flex", alignItems: "center", gap: 8 }}><Icon name="push_pin" size={20} filled color={C.esmeralda} /> Fijos del mes</p>
             <button onClick={onGoFijos} style={{ background: "none", border: "none", color: C.esmeralda, fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>Ver todo →</button>
           </div>
           {activosFijos.slice(0, 3).map((f) => {
@@ -137,7 +138,7 @@ export function HomeView({
         return (
           <div style={{ marginTop: 22 }}>
             <div onClick={onGoAhorros} className="btn-pill" style={{ background: C.card, borderRadius: 22, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, boxShadow: `0 4px 16px ${C.hoja}1F`, cursor: "pointer" }}>
-              <div style={{ width: 44, height: 44, borderRadius: "50%", background: C.hojaSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>🐷</div>
+              <div style={{ width: 44, height: 44, borderRadius: "50%", background: C.hojaSoft, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><ManekiNeko size={24} /></div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontWeight: 800, fontSize: 14, color: C.ink }}>Ahorros</p>
                 <p style={{ fontSize: 11, color: C.ink2, marginTop: 2, fontWeight: 600 }}>{ahorros.length} meta{ahorros.length === 1 ? "" : "s"}</p>
@@ -159,7 +160,7 @@ export function HomeView({
           </div>
           <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 6, margin: "0 -16px", padding: "2px 16px 8px" }}>
             {top5.map((c, i) => {
-              const palette = [C.coralSoft, C.menta, C.hojaSoft, C.mentaSoft, C.esmeraldaSoft];
+              const palette = [C.coralSoft, C.menta, C.hojaSoft, C.esmeraldaSoft, C.mentaSoft];
               const bg = palette[i % palette.length];
               return (
                 <div key={c.id} style={{ flexShrink: 0, width: 128, height: 132, borderRadius: 20, padding: "14px 12px", background: bg, position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", boxShadow: `0 4px 14px ${C.hoja}1A` }}>
@@ -176,7 +177,7 @@ export function HomeView({
 
       <div style={{ marginTop: 24 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <p style={{ fontWeight: 800, fontSize: 20, color: C.ink }}>Movimientos recientes ⏳</p>
+          <p style={{ fontWeight: 800, fontSize: 20, color: C.ink, display: "inline-flex", alignItems: "center", gap: 8 }}>Movimientos recientes <Icon name="history" size={20} color={C.ink2} /></p>
           <button onClick={onGoMovimientos} style={{ background: "none", border: "none", color: C.esmeralda, fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>Ver todo →</button>
         </div>
         {txs.length === 0 ? (

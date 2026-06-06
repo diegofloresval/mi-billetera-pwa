@@ -49,12 +49,13 @@ export function TxModal({ modalType, setModalType, form, setForm, editId, sueldo
   const pickCat = (id) => { setForm({ ...form, cat: id }); setUserPickedCat(true); };
   const title = modalType === "ingreso" ? "💰 Agregar ingreso" : modalType === "sueldo" ? "💼 Mi sueldo" : `${editId ? "✏️ Editar" : "➕ Nuevo"} gasto`;
   const submitBg = modalType === "ingreso" ? C.esmeralda : modalType === "sueldo" ? C.menta : C.hoja;
+  const submitColor = modalType === "ingreso" ? "#fff" : C.inkOnHoja;
   return (
     <ModalSheet title={title} onClose={onClose}>
       {showToggle && (
         <div style={S.toggleRow}>
           <button className="btn-pill" onClick={() => switchType("gasto")} style={toggleBtn(modalType === "gasto", C.coral, C.inkDanger)}>➖ Gasto</button>
-          <button className="btn-pill" onClick={() => switchType("ingreso")} style={toggleBtn(modalType === "ingreso", C.hoja, "#fff")}>➕ Ingreso</button>
+          <button className="btn-pill" onClick={() => switchType("ingreso")} style={toggleBtn(modalType === "ingreso", C.hoja, C.inkOnHoja)}>➕ Ingreso</button>
         </div>
       )}
       {modalType === "sueldo" ? (
@@ -72,14 +73,14 @@ export function TxModal({ modalType, setModalType, form, setForm, editId, sueldo
             {CURRENCIES.map((cur) => {
               const active = (form.currency || "ARS") === cur.id;
               return (
-                <button key={cur.id} className="btn-pill" onClick={() => setForm({ ...form, currency: cur.id })} style={{ flex: 1, padding: "10px 14px", borderRadius: 99, border: "none", background: active ? C.hoja : C.hojaSoft, color: active ? "#fff" : C.ink, fontSize: 13, fontWeight: 800, fontFamily: "inherit", cursor: "pointer" }}>{cur.symbol} {cur.id}</button>
+                <button key={cur.id} className="btn-pill" onClick={() => setForm({ ...form, currency: cur.id })} style={{ flex: 1, padding: "10px 14px", borderRadius: 99, border: "none", background: active ? C.hoja : C.hojaSoft, color: active ? C.inkOnHoja : C.ink, fontSize: 13, fontWeight: 800, fontFamily: "inherit", cursor: "pointer" }}>{cur.symbol} {cur.id}</button>
               );
             })}
           </div>
           {modalType !== "ingreso" && <>
             <p style={S.labelMicro}>Método de pago</p>
             <div style={S.pillRowWrap}>
-              {METHODS.map((m) => <button key={m.id} className="btn-pill" onClick={() => setForm({ ...form, method: m.id })} style={{ padding: "9px 14px", borderRadius: 99, border: "none", background: form.method === m.id ? (m.id === "credito" ? C.coral : C.hoja) : C.hojaSoft, color: form.method === m.id ? "#fff" : C.ink, fontSize: 13, fontWeight: 800 }}>{m.icon} {m.label}</button>)}
+              {METHODS.map((m) => <button key={m.id} className="btn-pill" onClick={() => setForm({ ...form, method: m.id })} style={{ padding: "9px 14px", borderRadius: 99, border: "none", background: form.method === m.id ? (m.id === "credito" ? C.coral : C.hoja) : C.hojaSoft, color: form.method === m.id ? (m.id === "credito" ? C.inkDanger : C.inkOnHoja) : C.ink, fontSize: 13, fontWeight: 800 }}>{m.icon} {m.label}</button>)}
             </div>
             <p style={S.labelMicro}>Categoría</p>
             <div style={S.catGrid}>
@@ -88,7 +89,7 @@ export function TxModal({ modalType, setModalType, form, setForm, editId, sueldo
           </>}
         </>
       )}
-      <button onClick={onSubmit} style={{ width: "100%", padding: 16, borderRadius: 18, border: "none", background: submitBg, color: modalType === "sueldo" ? C.inkOnHoja : "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 8px 20px ${submitBg}66` }}>
+      <button onClick={onSubmit} style={{ width: "100%", padding: 16, borderRadius: 18, border: "none", background: submitBg, color: submitColor, fontSize: 16, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 8px 20px ${submitBg}66` }}>
         {editId ? "Guardar" : modalType === "sueldo" ? "Actualizar sueldo" : modalType === "ingreso" ? "Agregar ingreso" : "Agregar gasto"}
       </button>
     </ModalSheet>

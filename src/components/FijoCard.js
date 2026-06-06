@@ -11,7 +11,7 @@ export function FijoCard({ f, onEdit, onDel, onToggle, onPagar }) {
     return (
       <div style={{ borderRadius: 24, padding: "16px 18px", border: `1.5px dashed ${C.hoja}66`, marginBottom: 12, background: "transparent" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#EBE9E0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0, filter: "grayscale(0.6)", opacity: 0.7 }}>{cat.emoji}</div>
+          <div style={{ width: 48, height: 48, borderRadius: "50%", background: C.hojaSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0, filter: "grayscale(0.6)", opacity: 0.7 }}>{cat.emoji}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ fontWeight: 800, fontSize: 15, color: C.ink2 }}>{f.desc}</p>
             <p style={{ fontSize: 10, color: C.ink2, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2 }}>
@@ -53,7 +53,7 @@ export function FijoCard({ f, onEdit, onDel, onToggle, onPagar }) {
       </div>
       <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.hoja}26`, display: "flex", flexDirection: "column", gap: 8 }}>
         {f.tipo === "cuotas" && rest > 0 && (
-          <button onClick={onPagar} style={{ width: "100%", padding: "11px 0", borderRadius: 99, border: "none", background: C.mentaSoft, color: C.inkSuccess, fontWeight: 900, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+          <button onClick={onPagar} style={{ width: "100%", padding: "11px 0", borderRadius: 99, border: "none", background: C.mentaSoft, color: C.inkSuccess, fontWeight: 900, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, boxShadow: `0 4px 12px ${C.menta}88` }}>
             <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check_circle</span> Pagar cuota
           </button>
         )}
