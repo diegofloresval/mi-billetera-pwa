@@ -190,7 +190,7 @@ export function HomeView({
               const mth = mthInfo(tx.method);
               return (
                 <div key={tx.id} className="tx-row" style={{ padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, cursor: "pointer", borderBottom: idx < arr.length - 1 ? `1px solid ${C.bg}` : "none" }} onClick={() => onEditTx(tx)}>
-                  <div style={{ width: 42, height: 42, borderRadius: "50%", background: C.mentaSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{tx.cat === "ahorro" ? <ManekiNeko size={24} /> : cat.emoji}</div>
+                  <div style={{ width: 42, height: 42, borderRadius: "50%", background: C.mentaSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{cat.emoji}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontWeight: 800, fontSize: 14, color: C.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tx.desc}</p>
                     <p style={{ fontSize: 11, color: C.ink2, marginTop: 2, fontWeight: 500 }}>{tx.fecha} · {mth.icon} {mth.label}</p>

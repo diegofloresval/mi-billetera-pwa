@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { C } from "../constants";
 import { today } from "../helpers";
-import { ManekiNeko } from "./ManekiNeko";
 import { Icon } from "./Icon";
 
 const TITLE_WRAP = { display: "inline-flex", alignItems: "center", gap: 8 };
@@ -33,7 +32,7 @@ export function AportarModal({ ahorro, onConfirm, onClose }) {
         <div style={S.header}>
           <p style={S.title}>
             <span style={TITLE_WRAP}>
-              {!ahorro.emoji || ahorro.emoji === "🐷" || ahorro.emoji === "🐱" ? <ManekiNeko size={22} /> : <span>{ahorro.emoji}</span>}
+              <span>{ahorro.emoji || "🐱"}</span>
               Aportar a {ahorro.nombre}
             </span>
           </p>
