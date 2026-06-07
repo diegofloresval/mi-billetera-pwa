@@ -81,7 +81,7 @@ export function MovimientosView({ mesesDisponibles, movMes, setMovMes, ingMovMes
             </div>
             <div style={{ textAlign: "right", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
               <p style={{ fontWeight: 900, fontSize: 16, color: tx.type === "ingreso" ? C.inkSuccess : C.ink, fontVariantNumeric: "tabular-nums" }}>{tx.type === "ingreso" ? "+" : "-"}{fmt(tx.monto, tx.currency || "ARS")}</p>
-              <button aria-label="Eliminar" onClick={(e) => { e.stopPropagation(); onDelTx(tx.id); }} style={{ background: "none", border: "none", cursor: "pointer", color: `${C.ink2}88`, padding: 2, display: "flex" }}>
+              <button aria-label="Eliminar" onClick={(e) => { e.stopPropagation(); onDelTx(tx.id); }} style={{ background: "none", border: "none", cursor: "pointer", color: `${C.ink2}88`, width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
                 <Icon name="delete" size={16} />
               </button>
             </div>

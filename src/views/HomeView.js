@@ -41,7 +41,7 @@ export function HomeView({
 
   return (
     <div className="fade-in">
-      <div style={{ background: C.card, borderRadius: 28, padding: "22px 22px", marginTop: 16, position: "relative", overflow: "hidden", boxShadow: `0 10px 32px ${C.hoja}55` }}>
+      <div style={{ background: C.hojaSoft, borderRadius: 28, padding: "22px 22px", marginTop: 16, position: "relative", overflow: "hidden", boxShadow: `0 10px 32px ${C.hoja}55` }}>
         <div style={{ position: "relative", zIndex: 2 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, flexWrap: "wrap" }}>
             <p style={{ color: C.ink2, fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase", fontWeight: 800 }}>Balance del mes</p>
@@ -57,11 +57,18 @@ export function HomeView({
               </div>
             )}
           </div>
-          <AnimNumber value={effectiveMode === "unified" && balanceUnified != null ? balanceUnified : balance} style={{ display: "block", fontSize: 40, fontWeight: 900, color: C.ink, marginTop: 6, letterSpacing: -1, fontVariantNumeric: "tabular-nums" }} />
+          {(() => {
+            const displayedBalance = effectiveMode === "unified" && balanceUnified != null ? balanceUnified : balance;
+            return (
+              <AnimNumber value={displayedBalance} style={{ display: "block", fontSize: 40, fontWeight: 900, color: displayedBalance < 0 ? C.inkDanger : C.ink, marginTop: 6, letterSpacing: -1, fontVariantNumeric: "tabular-nums" }} />
+            );
+          })()}
           <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: C.hojaSoft, color: C.ink, borderRadius: 99, padding: "5px 12px", fontSize: 11, fontWeight: 800, border: `1px solid ${C.hoja}55` }}>
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: C.esmeralda }} /> Sueldo {fmt(sueldo)}
-            </span>
+            {sueldo > 0 && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: C.hojaSoft, color: C.ink, borderRadius: 99, padding: "5px 12px", fontSize: 11, fontWeight: 800, border: `1px solid ${C.hoja}55` }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: C.esmeralda }} /> Sueldo {fmt(sueldo)}
+              </span>
+            )}
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: C.coralSoft, color: C.ink, borderRadius: 99, padding: "5px 12px", fontSize: 11, fontWeight: 800, border: `1px solid ${C.coral}55` }}>
               <span style={{ width: 8, height: 8, borderRadius: "50%", background: C.coral }} /> Fijos {fmt(fjsDisplayARS)}{showUSDRow && byC.USD.fijos > 0 ? ` · ${fmt(byC.USD.fijos, "USD")}` : ""}
             </span>
@@ -72,12 +79,6 @@ export function HomeView({
           {effectiveMode === "unified" && fxRate && fxRate.USD_ARS > 0 && (
             <p style={{ fontSize: 10, color: C.ink2, marginTop: 10, fontWeight: 600 }}>USD convertido a {fmt(fxRate.USD_ARS)} / US$1</p>
           )}
-        </div>
-        <div style={{ position: "absolute", right: -8, bottom: -16, opacity: 0.28, pointerEvents: "none", zIndex: 1 }}>
-          <Icon name="eco" size={120} filled weight={400} color={C.hoja} />
-        </div>
-        <div style={{ position: "absolute", right: 28, top: 22, opacity: 0.35, pointerEvents: "none", transform: "rotate(12deg)", zIndex: 1 }}>
-          <Icon name="star" size={32} filled color={C.menta} />
         </div>
       </div>
 
@@ -160,7 +161,7 @@ export function HomeView({
           </div>
           <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 6, margin: "0 -16px", padding: "2px 16px 8px" }}>
             {top5.map((c, i) => {
-              const palette = [C.coralSoft, C.menta, C.hojaSoft, C.esmeraldaSoft, C.mentaSoft];
+              const palette = [C.menta, C.hojaSoft, C.mentaSoft, C.esmeraldaSoft, C.hojaSoft];
               const bg = palette[i % palette.length];
               return (
                 <div key={c.id} style={{ flexShrink: 0, width: 128, height: 132, borderRadius: 20, padding: "14px 12px", background: bg, position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", boxShadow: `0 4px 14px ${C.hoja}1A` }}>
@@ -181,7 +182,7 @@ export function HomeView({
           <button onClick={onGoMovimientos} style={{ background: "none", border: "none", color: C.esmeralda, fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>Ver todo →</button>
         </div>
         {txs.length === 0 ? (
-          <p style={{ color: C.ink2, textAlign: "center", padding: 30 }}>Todavía no hay movimientos 🪴<br /><small>Usá el botón + para agregar</small></p>
+          <p style={{ color: C.ink2, textAlign: "center", padding: 30 }}>Todavía no hay movimientos<br /><small>Usá el botón + para agregar</small></p>
         ) : (
           <div style={{ background: C.card, borderRadius: 26, overflow: "hidden", boxShadow: `0 4px 18px ${C.hoja}1F` }}>
             {txs.slice(0, 5).map((tx, idx, arr) => {

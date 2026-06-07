@@ -23,6 +23,11 @@ export const C = {
   inkSuccess: "#007A3D",
   inkOnHoja:  "#0F5C2C",
   inkDanger:  "#A8324E",
+
+  // jerarquía de sombras (sm: contenido, md: cards, lg: hero/FAB)
+  shadowSm:   "0 2px 8px rgba(115,198,83,0.10)",
+  shadowMd:   "0 4px 14px rgba(115,198,83,0.18)",
+  shadowLg:   "0 10px 32px rgba(115,198,83,0.34)",
 };
 
 export const CATS = [

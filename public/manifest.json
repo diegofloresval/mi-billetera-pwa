@@ -21,5 +21,25 @@
   "orientation": "portrait",
   "theme_color": "#F8F6EE",
   "background_color": "#F8F6EE",
-  "scope": "./"
+  "scope": "./",
+  "shortcuts": [
+    {
+      "name": "Nuevo gasto",
+      "short_name": "Gasto",
+      "url": "./?action=gasto",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Nuevo ingreso",
+      "short_name": "Ingreso",
+      "url": "./?action=ingreso",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Ver ahorros",
+      "short_name": "Ahorros",
+      "url": "./?tab=ahorros",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ]
 }

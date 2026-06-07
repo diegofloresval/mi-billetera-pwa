@@ -8,12 +8,13 @@ const inp = (extra = {}) => ({
   ...extra,
 });
 
-const toggleBtn = (active, accent, activeColor) => ({
+const toggleBtn = (active, accent, activeColor, disabled = false) => ({
   flex: 1, padding: "10px 14px", borderRadius: 99, border: "none",
   background: active ? accent : C.hojaSoft,
   color: active ? activeColor : C.ink,
-  fontSize: 14, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+  fontSize: 14, fontWeight: 800, cursor: disabled ? "not-allowed" : "pointer", fontFamily: "inherit",
   transition: "all .18s",
+  opacity: disabled ? 0.6 : 1,
 });
 
 const S = {
@@ -60,13 +61,13 @@ export function TxModal({ modalType, setModalType, form, setForm, editId, sueldo
       )}
       {modalType === "sueldo" ? (
         <><p style={S.sueldoInfo}>Actual: <strong style={S.inkStrong}>{fmt(sueldo)}</strong></p>
-          <input placeholder="Nuevo sueldo" type="number" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} {...inp()} /></>
+          <input aria-label="Nuevo sueldo" placeholder="Nuevo sueldo" type="number" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} {...inp()} /></>
       ) : (
         <>
-          <input placeholder="Descripción" value={form.desc} onChange={onDescChange} {...inp()} />
+          <input aria-label="Descripción" placeholder="Descripción" value={form.desc} onChange={onDescChange} {...inp()} />
           <div style={S.amountRow}>
-            <input placeholder="Monto $" type="number" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} {...inp({ style: { flex: 1, marginBottom: 10 } })} />
-            <input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} {...inp({ style: { flex: 1, marginBottom: 10, fontSize: 13 } })} />
+            <input aria-label="Monto" placeholder="Monto $" type="number" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} {...inp({ style: { flex: 1, marginBottom: 10 } })} />
+            <input aria-label="Fecha" type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} {...inp({ style: { flex: 1, marginBottom: 10, fontSize: 13 } })} />
           </div>
           <p style={S.labelMicro}>Moneda</p>
           <div style={S.pillRow}>
@@ -84,7 +85,12 @@ export function TxModal({ modalType, setModalType, form, setForm, editId, sueldo
             </div>
             <p style={S.labelMicro}>Categoría</p>
             <div style={S.catGrid}>
-              {allCats.map((c) => <button key={c.id} className="btn-pill" onClick={() => pickCat(c.id)} style={{ padding: "8px 14px", borderRadius: 99, border: "none", background: form.cat === c.id ? C.menta : C.hojaSoft, color: C.ink, fontSize: 13, fontWeight: 800 }}>{c.emoji} {c.label}</button>)}
+              {allCats.map((c) => {
+                const active = form.cat === c.id;
+                return (
+                  <button key={c.id} className="btn-pill" aria-pressed={active} onClick={() => pickCat(c.id)} style={{ padding: "8px 14px", borderRadius: 99, border: "none", background: active ? C.menta : C.hojaSoft, color: C.ink, fontSize: 13, fontWeight: active ? 900 : 700 }}>{active ? "✓ " : ""}{c.emoji} {c.label}</button>
+                );
+              })}
             </div>
           </>}
         </>

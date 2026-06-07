@@ -3,8 +3,6 @@ import { saludo, monthLabel } from "../helpers";
 import { Icon } from "../components/Icon";
 import { ManekiNeko } from "../components/ManekiNeko";
 
-const TITLE_AHORROS = { display: "inline-flex", alignItems: "center", gap: 8 };
-
 const S = {
   wrap: { background: C.bg, padding: "calc(env(safe-area-inset-top) + 18px) 22px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, position: "sticky", top: 0, zIndex: 50 },
   titleBox: { minWidth: 0, flex: 1 },
@@ -26,7 +24,7 @@ export function TopBar({ tab, nombre, cm, onAddIngreso, onAddSueldo, onAddFijo, 
     <div style={S.wrap}>
       {tab === "Home" && (
         <div style={S.avatar} aria-hidden="true">
-          {nombre ? nombre.trim().charAt(0).toUpperCase() : <ManekiNeko size={22} />}
+          {nombre ? nombre.trim().charAt(0).toUpperCase() : <ManekiNeko size={22} alt="Mi Billetera" />}
         </div>
       )}
       <div style={S.titleBox}>
@@ -35,7 +33,7 @@ export function TopBar({ tab, nombre, cm, onAddIngreso, onAddSueldo, onAddFijo, 
             : tab === "Movimientos" ? "Movimientos"
             : tab === "Fijos" ? "📌 Gastos fijos"
             : tab === "Presupuesto" ? "Presupuesto"
-            : tab === "Ahorros" ? (<span style={TITLE_AHORROS}><ManekiNeko size={20} /> Ahorros</span>)
+            : tab === "Ahorros" ? "Ahorros"
             : "⚙️ Ajustes"}
         </p>
         {tab === "Home" && (
@@ -45,19 +43,11 @@ export function TopBar({ tab, nombre, cm, onAddIngreso, onAddSueldo, onAddFijo, 
         )}
         {tab === "Presupuesto" && <p style={S.subtitleBold}>{monthLabel(cm)}</p>}
       </div>
-      {tab === "Home" && (
+      {tab === "Home" && onOpenAjustes && (
         <div style={S.actions}>
-          <button aria-label="Agregar ingreso" className="btn-pill" onClick={onAddIngreso} style={S.ingresoBtn}>
-            <Icon name="add" size={22} weight={700} />
+          <button aria-label="Ajustes" className="btn-pill" onClick={onOpenAjustes} style={S.settingsBtn}>
+            <Icon name="settings" size={20} weight={600} />
           </button>
-          <button aria-label="Mi sueldo" className="btn-pill" onClick={onAddSueldo} style={S.sueldoBtn}>
-            <Icon name="work" size={20} weight={600} />
-          </button>
-          {onOpenAjustes && tab !== "Ajustes" && (
-            <button aria-label="Ajustes" className="btn-pill" onClick={onOpenAjustes} style={S.settingsBtn}>
-              <Icon name="settings" size={20} weight={600} />
-            </button>
-          )}
         </div>
       )}
       {tab === "Movimientos" && onOpenAjustes && (

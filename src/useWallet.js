@@ -1,13 +1,27 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { INITIAL_STATE } from "./constants";
-import { saveData, loadData } from "./helpers";
+import { saveData, loadData, today, currentMonth } from "./helpers";
+
+// Migración: sueldo dejó de sumarse al balance directamente; ahora es tx determinística.
+// Si el usuario tenía sueldo>0 antes de la migración, materializamos la tx del mes corriente
+// para que su balance no caiga al actualizar.
+function migrateSueldoToTx(s) {
+  if (!s || !s.sueldo || s.sueldo <= 0) return s;
+  const cm = currentMonth();
+  const sueldoId = `sueldo-${cm}`;
+  const txs = Array.isArray(s.txs) ? s.txs : [];
+  if (txs.some((t) => t && t.id === sueldoId)) return s;
+  const sueldoTx = { id: sueldoId, type: "ingreso", cat: "ingreso", desc: "Sueldo", monto: s.sueldo, currency: "ARS", fecha: today(), method: "transfer" };
+  return { ...s, txs: [sueldoTx, ...txs] };
+}
 
 export function useWallet() {
   const loadedRef = useRef(null);
   const [state, setState] = useState(() => {
     const loaded = loadData();
     loadedRef.current = loaded;
-    return loaded.state ? loaded.state : { ...INITIAL_STATE };
+    const base = loaded.state ? loaded.state : { ...INITIAL_STATE };
+    return migrateSueldoToTx(base);
   });
   const quotaWarnedRef = useRef(false);
   const onQuotaErrorRef = useRef(null);

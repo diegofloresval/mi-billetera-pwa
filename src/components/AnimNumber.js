@@ -1,11 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import { fmt } from "../helpers";
 
+const prefersReduced = () => typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 export function AnimNumber({ value, style }) {
   const [disp, setDisp] = useState(value);
   const dispRef = useRef(value);
   const rafRef = useRef(null);
   useEffect(() => {
+    if (prefersReduced()) {
+      dispRef.current = value;
+      setDisp(value);
+      return;
+    }
     const s = dispRef.current, e = value, dur = 700, t0 = performance.now();
     const step = (now) => {
       const t = Math.min((now - t0) / dur, 1);

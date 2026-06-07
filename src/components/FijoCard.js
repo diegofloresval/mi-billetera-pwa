@@ -38,14 +38,14 @@ export function FijoCard({ f, onEdit, onDel, onToggle, onPagar }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ fontWeight: 800, fontSize: 16, color: C.ink }}>{f.desc}</p>
           <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 10, background: f.tipo === "cuotas" ? C.coralSoft : C.hojaSoft, color: f.tipo === "cuotas" ? C.inkDanger : C.inkOnHoja, borderRadius: 99, padding: "3px 9px", fontWeight: 900, textTransform: "uppercase", letterSpacing: 0.3 }}>
+            <span style={{ fontSize: 10, background: f.tipo === "cuotas" ? C.mentaSoft : C.hojaSoft, color: C.inkOnHoja, borderRadius: 99, padding: "3px 9px", fontWeight: 900, textTransform: "uppercase", letterSpacing: 0.3 }}>
               {f.tipo === "cuotas" ? `⏳ ${cuotaLabel(f)}` : f.hastaFecha ? `🔄 hasta ${f.hastaFecha}` : "🔄 Mensual"}
             </span>
             <span style={{ fontSize: 10, background: C.mentaSoft, color: C.ink, borderRadius: 99, padding: "3px 9px", fontWeight: 800 }}>{mth.icon} {mth.label}</span>
           </div>
           {f.tipo === "cuotas" && (
-            <div style={{ marginTop: 10, height: 6, borderRadius: 99, background: C.coralSoft, overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${pctCuota}%`, background: C.coral, borderRadius: 99, transition: "width .5s" }} />
+            <div style={{ marginTop: 10, height: 6, borderRadius: 99, background: C.hojaSoft, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${pctCuota}%`, background: C.hoja, borderRadius: 99, transition: "width .5s" }} />
             </div>
           )}
         </div>
