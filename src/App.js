@@ -321,6 +321,9 @@ export default function App() {
         .tx-row:active{background:${C.hojaSoft} !important;}
         .btn-pill{transition:all .18s;cursor:pointer;}
         .btn-pill:active{transform:scale(.95);}
+        @media (prefers-reduced-motion: reduce){
+          *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important;}
+        }
       `}</style>
 
       <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100dvh", background: C.bg, position: "relative", touchAction: "pan-y" }}>
