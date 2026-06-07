@@ -90,6 +90,7 @@ const sanitizeAporte = (p) => {
     monto,
     fecha: p.fecha,
     currency: sanitizeCurrency(p.currency),
+    txId: typeof p.txId === "string" && p.txId ? p.txId : null,
   };
 };
 

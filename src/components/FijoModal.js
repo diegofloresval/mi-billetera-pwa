@@ -45,16 +45,16 @@ export function FijoModal({ fijoForm, setFijoForm, editFijoId, customCats = [], 
       </div>
       <div style={S.variantBox}>
         {fijoForm.tipo === "mensual" && <>
-          <p style={S.labelSmall}>¿Hasta cuándo? (vacío = indefinido)</p>
-          <input aria-label="Hasta cuándo" type="month" value={fijoForm.hastaFecha} onChange={(e) => setFijoForm({ ...fijoForm, hastaFecha: e.target.value })} {...inp()} />
+          <label htmlFor="fijo-hasta" style={S.labelSmall}>¿Hasta cuándo? (vacío = indefinido)</label>
+          <input id="fijo-hasta" aria-label="Hasta cuándo" type="month" value={fijoForm.hastaFecha} onChange={(e) => setFijoForm({ ...fijoForm, hastaFecha: e.target.value })} {...inp()} />
         </>}
         {fijoForm.tipo === "cuotas" && <>
           <p style={S.labelMicro}>Cantidad de cuotas</p>
           <div style={S.cuotasGrid}>
             {CUOTAS_OPS.map((n) => <button key={n} className="btn-pill" onClick={() => setFijoForm({ ...fijoForm, cuotasTotales: n })} style={{ width: 52, height: 42, borderRadius: 14, border: "none", background: fijoForm.cuotasTotales === n ? C.menta : C.hojaSoft, color: C.inkOnHoja, fontWeight: 900, fontSize: 13 }}>{n}x</button>)}
           </div>
-          <p style={S.labelSmall}>Mes de inicio</p>
-          <input aria-label="Mes de inicio" type="month" value={fijoForm.desde} onChange={(e) => setFijoForm({ ...fijoForm, desde: e.target.value })} {...inp()} />
+          <label htmlFor="fijo-desde" style={S.labelSmall}>Mes de inicio</label>
+          <input id="fijo-desde" aria-label="Mes de inicio" type="month" value={fijoForm.desde} onChange={(e) => setFijoForm({ ...fijoForm, desde: e.target.value })} {...inp()} />
         </>}
       </div>
       <p style={S.labelMicro}>Método de pago</p>

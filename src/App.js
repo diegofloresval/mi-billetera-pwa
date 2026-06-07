@@ -11,6 +11,7 @@ import { AhorroModal } from "./components/AhorroModal";
 import { ConfirmSheet } from "./components/ConfirmSheet";
 import { Toast } from "./components/Toast";
 import { BottomNav, Fab } from "./components/BottomNav";
+import { FabMenu } from "./components/FabMenu";
 import { TopBar } from "./views/TopBar";
 import { InstallBanner } from "./views/InstallBanner";
 import { HomeView } from "./views/HomeView";
@@ -39,6 +40,7 @@ export default function App() {
   const [showInstall, setShowInstall] = useState(false);
   const [movMes, setMovMes] = useState(currentMonth());
   const [confirmState, setConfirmState] = useState(null);
+  const [showFabMenu, setShowFabMenu] = useState(false);
   const fileInputRef = useRef(null);
   const pendingImportRef = useRef(null);
 
@@ -189,7 +191,39 @@ export default function App() {
       setState((s) => s[key].some((x) => x.id === id) ? s : { ...s, [key]: [removed, ...s[key]] })
     );
   };
-  const del = (id) => removeWithUndo("txs", id, "Movimiento eliminado");
+  const del = (id) => {
+    const tx = state.txs.find((x) => x.id === id);
+    if (!tx) return;
+    if (tx.cat !== "ahorro") return removeWithUndo("txs", id, "Movimiento eliminado");
+    // Cascade: find related aporte (by txId, or legacy heuristic by monto+fecha+currency)
+    let aporte = state.aportes.find((p) => p.txId === id);
+    if (!aporte) {
+      aporte = state.aportes.find(
+        (p) => !p.txId && p.monto === tx.monto && p.fecha === tx.fecha && (p.currency || "ARS") === (tx.currency || "ARS")
+      );
+    }
+    if (!aporte) return removeWithUndo("txs", id, "Movimiento eliminado");
+    const ahorro = state.ahorros.find((a) => a.id === aporte.ahorroId);
+    const prevActual = ahorro ? (ahorro.actual || 0) : 0;
+    const nextActual = Math.max(0, prevActual - aporte.monto);
+    setState((s) => ({
+      ...s,
+      txs: s.txs.filter((x) => x.id !== id),
+      aportes: s.aportes.filter((p) => p.id !== aporte.id),
+      ahorros: ahorro ? s.ahorros.map((a) => a.id === ahorro.id ? { ...a, actual: nextActual } : a) : s.ahorros,
+    }));
+    showToast("Aporte eliminado", () =>
+      setState((s) => {
+        if (s.txs.some((x) => x.id === id)) return s;
+        return {
+          ...s,
+          txs: [tx, ...s.txs],
+          aportes: [aporte, ...s.aportes],
+          ahorros: ahorro ? s.ahorros.map((a) => a.id === ahorro.id ? { ...a, actual: prevActual } : a) : s.ahorros,
+        };
+      })
+    );
+  };
 
   const startEdit = (tx) => {
     setEditId(tx.id); setModalType(tx.type === "ingreso" ? "ingreso" : "gasto");
@@ -286,7 +320,7 @@ export default function App() {
     const aporteId = uid();
     const txId = uid();
     const fecha = fechaArg || today();
-    const newAporte = { id: aporteId, ahorroId, monto: n, currency: cur, fecha };
+    const newAporte = { id: aporteId, ahorroId, monto: n, currency: cur, fecha, txId };
     const newTx = { id: txId, type: "gasto", cat: "ahorro", desc: `Aporte ${a.nombre}`, monto: n, currency: cur, fecha, method: "transfer" };
     upd({
       ahorros: ahorros.map((x) => x.id === ahorroId ? { ...x, actual: (x.actual || 0) + n } : x),
@@ -490,7 +524,23 @@ export default function App() {
         </div>
 
         <BottomNav tab={tab} onChange={setTab} />
-        <Fab activeTab={tab} onClick={() => tab === "Ahorros" ? openAhorroModal() : tab === "Fijos" ? openFijoModal() : openModal("gasto")} />
+        <Fab activeTab={tab} onClick={() => {
+          if (tab === "Home") { setShowFabMenu(true); return; }
+          if (tab === "Ahorros") return openAhorroModal();
+          if (tab === "Fijos") return openFijoModal();
+          openModal("gasto");
+        }} />
+
+        {showFabMenu && (
+          <FabMenu
+            onClose={() => setShowFabMenu(false)}
+            onPick={(id) => {
+              setShowFabMenu(false);
+              if (id === "fijo") openFijoModal();
+              else openModal(id);
+            }}
+          />
+        )}
 
         {showModal && (
           <TxModal

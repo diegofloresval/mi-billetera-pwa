@@ -43,19 +43,11 @@ export function TopBar({ tab, nombre, cm, onAddIngreso, onAddSueldo, onAddFijo, 
         )}
         {tab === "Presupuesto" && <p style={S.subtitleBold}>{monthLabel(cm)}</p>}
       </div>
-      {tab === "Home" && (
+      {tab === "Home" && onOpenAjustes && (
         <div style={S.actions}>
-          <button aria-label="Agregar ingreso" className="btn-pill" onClick={onAddIngreso} style={S.ingresoBtn}>
-            <Icon name="add" size={22} weight={700} />
+          <button aria-label="Ajustes" className="btn-pill" onClick={onOpenAjustes} style={S.settingsBtn}>
+            <Icon name="settings" size={20} weight={600} />
           </button>
-          <button aria-label="Mi sueldo" className="btn-pill" onClick={onAddSueldo} style={S.sueldoBtn}>
-            <Icon name="work" size={20} weight={600} />
-          </button>
-          {onOpenAjustes && tab !== "Ajustes" && (
-            <button aria-label="Ajustes" className="btn-pill" onClick={onOpenAjustes} style={S.settingsBtn}>
-              <Icon name="settings" size={20} weight={600} />
-            </button>
-          )}
         </div>
       )}
       {tab === "Movimientos" && onOpenAjustes && (

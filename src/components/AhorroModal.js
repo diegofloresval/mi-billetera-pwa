@@ -37,8 +37,8 @@ export function AhorroModal({ ahorroForm, setAhorroForm, editAhorroId, onSubmit,
           );
         })}
       </div>
-      <p style={S.labelMicro}>Emoji</p>
-      <input aria-label="Emoji" placeholder="🐱" maxLength={4} value={ahorroForm.emoji} onChange={(e) => setAhorroForm({ ...ahorroForm, emoji: e.target.value })} {...inp({ style: { textAlign: "center", fontSize: 22, minHeight: 44 } })} />
+      <label htmlFor="ahorro-emoji" style={S.labelMicro}>Emoji</label>
+      <input id="ahorro-emoji" aria-label="Emoji" placeholder="🐱" maxLength={4} value={ahorroForm.emoji} onChange={(e) => setAhorroForm({ ...ahorroForm, emoji: e.target.value })} {...inp({ style: { textAlign: "center", fontSize: 22, minHeight: 44 } })} />
       <p style={S.labelMicro}>Color</p>
       <div style={S.colorRow}>
         {AHORRO_COLORS.map((col) => {
