@@ -33,7 +33,7 @@ export function FijoModal({ fijoForm, setFijoForm, editFijoId, customCats = [], 
         {CURRENCIES.map((cur) => {
           const active = (fijoForm.currency || "ARS") === cur.id;
           return (
-            <button key={cur.id} className="btn-pill" onClick={() => setFijoForm({ ...fijoForm, currency: cur.id })} style={{ flex: 1, padding: "10px 14px", borderRadius: 99, border: "none", background: active ? C.hoja : C.hojaSoft, color: active ? C.inkOnHoja : C.ink, fontSize: 13, fontWeight: 800, fontFamily: "inherit", cursor: "pointer" }}>{cur.symbol} {cur.id}</button>
+            <button key={cur.id} className="btn-pill" onClick={() => setFijoForm({ ...fijoForm, currency: cur.id })} style={{ flex: 1, padding: "10px 14px", borderRadius: 99, border: "none", background: active ? C.hoja : C.hojaSoft, color: active ? C.inkOnHoja : C.ink, fontSize: 13, fontWeight: 800, fontFamily: "inherit", cursor: "pointer" }}>{cur.label}</button>
           );
         })}
       </div>

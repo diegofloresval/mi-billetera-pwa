@@ -13,6 +13,8 @@ const sanitizeTx = (t, validCatIds) => {
   const type = t.type === "ingreso" ? "ingreso" : "gasto";
   const catOk = validCatIds ? validCatIds.has(t.cat) : !!CAT[t.cat];
   const cat = type === "ingreso" ? "ingreso" : (catOk ? t.cat : "otro");
+  const fxAtTxRaw = Number(t.fxAtTx);
+  const fxAtTx = Number.isFinite(fxAtTxRaw) && fxAtTxRaw > 0 ? fxAtTxRaw : null;
   return {
     id: typeof t.id === "string" && t.id ? t.id : Math.random().toString(36).slice(2, 9),
     type,
@@ -22,6 +24,7 @@ const sanitizeTx = (t, validCatIds) => {
     desc: typeof t.desc === "string" ? t.desc : "",
     method: typeof t.method === "string" ? t.method : "debito",
     currency: sanitizeCurrency(t.currency),
+    fxAtTx,
   };
 };
 
@@ -48,12 +51,15 @@ const sanitizeFijo = (f, validCatIds) => {
   };
 };
 
+const VALID_FX_SOURCES = ["blue", "oficial", "mep"];
+const sanitizeFxSource = (s) => VALID_FX_SOURCES.includes(s) ? s : "blue";
+
 const sanitizeFxRate = (fx) => {
-  if (!fx || typeof fx !== "object") return { USD_ARS: 0, updatedAt: null };
+  if (!fx || typeof fx !== "object") return { USD_ARS: 0, updatedAt: null, source: "blue", auto: false };
   const n = Number(fx.USD_ARS);
   const USD_ARS = Number.isFinite(n) && n >= 0 ? n : 0;
   const updatedAt = typeof fx.updatedAt === "string" ? fx.updatedAt : null;
-  return { USD_ARS, updatedAt };
+  return { USD_ARS, updatedAt, source: sanitizeFxSource(fx.source), auto: fx.auto === true };
 };
 
 const sanitizeAhorro = (a) => {
@@ -132,6 +138,7 @@ export const sanitizeState = (raw) => {
       nombre: typeof raw.nombre === "string" ? raw.nombre : "",
       customCats,
       fxRate: sanitizeFxRate(raw.fxRate),
+      fxSource: sanitizeFxSource(raw.fxSource),
       ahorros,
       aportes,
     },
@@ -172,6 +179,22 @@ export const toARS = (monto, currency, fxRate) => {
   const rate = fxRate && Number(fxRate.USD_ARS);
   if (!rate) return null;
   return monto * rate;
+};
+
+const FX_SOURCE_MAP = { blue: "blue", oficial: "oficial", mep: "bolsa" };
+
+export const fetchFxRate = async (source = "blue") => {
+  const slug = FX_SOURCE_MAP[source] || "blue";
+  const res = await fetch(`https://dolarapi.com/v1/dolares/${slug}`);
+  if (!res.ok) throw new Error("fx_fetch_failed");
+  const data = await res.json();
+  const venta = Number(data?.venta);
+  const compra = Number(data?.compra);
+  const mid = Number.isFinite(venta) && Number.isFinite(compra) && compra > 0
+    ? Math.round((venta + compra) / 2)
+    : (Number.isFinite(venta) ? Math.round(venta) : null);
+  if (!mid || mid <= 0) throw new Error("fx_invalid");
+  return mid;
 };
 
 export const today = () => new Date().toISOString().slice(0, 10);

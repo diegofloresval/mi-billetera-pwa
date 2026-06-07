@@ -74,7 +74,7 @@ export function TxModal({ modalType, setModalType, form, setForm, editId, sueldo
             {CURRENCIES.map((cur) => {
               const active = (form.currency || "ARS") === cur.id;
               return (
-                <button key={cur.id} className="btn-pill" onClick={() => setForm({ ...form, currency: cur.id })} style={{ flex: 1, padding: "10px 14px", borderRadius: 99, border: "none", background: active ? C.hoja : C.hojaSoft, color: active ? C.inkOnHoja : C.ink, fontSize: 13, fontWeight: 800, fontFamily: "inherit", cursor: "pointer" }}>{cur.symbol} {cur.id}</button>
+                <button key={cur.id} className="btn-pill" onClick={() => setForm({ ...form, currency: cur.id })} style={{ flex: 1, padding: "10px 14px", borderRadius: 99, border: "none", background: active ? C.hoja : C.hojaSoft, color: active ? C.inkOnHoja : C.ink, fontSize: 13, fontWeight: 800, fontFamily: "inherit", cursor: "pointer" }}>{cur.label}</button>
               );
             })}
           </div>
@@ -83,6 +83,45 @@ export function TxModal({ modalType, setModalType, form, setForm, editId, sueldo
             <div style={S.pillRowWrap}>
               {METHODS.map((m) => <button key={m.id} className="btn-pill" onClick={() => setForm({ ...form, method: m.id })} style={{ padding: "9px 14px", borderRadius: 99, border: "none", background: form.method === m.id ? (m.id === "credito" ? C.coral : C.hoja) : C.hojaSoft, color: form.method === m.id ? (m.id === "credito" ? C.inkDanger : C.inkOnHoja) : C.ink, fontSize: 13, fontWeight: 800 }}>{m.icon} {m.label}</button>)}
             </div>
+            {!editId && (
+              <>
+                <p style={S.labelMicro}>Forma de pago</p>
+                <div style={S.pillRow}>
+                  <button
+                    className="btn-pill"
+                    onClick={() => setForm({ ...form, cuotas: 1 })}
+                    style={toggleBtn((form.cuotas || 1) === 1, C.hoja, C.inkOnHoja)}
+                  >Pago único</button>
+                  <button
+                    className="btn-pill"
+                    onClick={() => setForm({ ...form, cuotas: form.cuotas && form.cuotas > 1 ? form.cuotas : 3 })}
+                    style={toggleBtn((form.cuotas || 1) > 1, C.coral, C.inkDanger)}
+                  >En cuotas</button>
+                </div>
+                {(form.cuotas || 1) > 1 && (
+                  <>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+                      {[3, 6, 9, 12, 18, 24].map((n) => {
+                        const active = form.cuotas === n;
+                        return (
+                          <button
+                            key={n}
+                            className="btn-pill"
+                            onClick={() => setForm({ ...form, cuotas: n })}
+                            style={{ padding: "8px 14px", borderRadius: 99, border: "none", background: active ? C.coral : C.coralSoft, color: active ? C.inkDanger : C.ink, fontWeight: 800, fontSize: 12, cursor: "pointer" }}
+                          >{n} cuotas</button>
+                        );
+                      })}
+                    </div>
+                    {Number(form.monto) > 0 && (
+                      <p style={{ fontSize: 12, color: C.ink2, marginBottom: 16, fontWeight: 700 }}>
+                        {form.cuotas} × <strong style={{ color: C.ink }}>{fmt(Number(form.monto) / form.cuotas, form.currency || "ARS")}</strong> por mes
+                      </p>
+                    )}
+                  </>
+                )}
+              </>
+            )}
             <p style={S.labelMicro}>Categoría</p>
             <div style={S.catGrid}>
               {allCats.map((c) => {

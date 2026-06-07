@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { C, CATS, METHODS, AHORRO_COLORS } from "./constants";
 import {
   uid, today, currentMonth, monthOf,
-  isInMonth, fijoActivoEsteMes, sanitizeState, toARS,
+  isInMonth, fijoActivoEsteMes, sanitizeState, toARS, fetchFxRate,
 } from "./helpers";
 import { useWallet } from "./useWallet";
 import { TxModal } from "./components/TxModal";
@@ -31,7 +31,7 @@ export default function App() {
   const [showAhorroModal, setShowAhorroModal] = useState(false);
   const [editAhorroId, setEditAhorroId] = useState(null);
   const [ahorroForm, setAhorroForm] = useState({ nombre: "", meta: "", color: AHORRO_COLORS[0], emoji: "🐱", currency: "ARS" });
-  const [form, setForm] = useState({ desc: "", monto: "", cat: "supermercado", fecha: today(), method: "debito", currency: "ARS" });
+  const [form, setForm] = useState({ desc: "", monto: "", cat: "supermercado", fecha: today(), method: "debito", currency: "ARS", cuotas: 1 });
   const [fijoForm, setFijoForm] = useState({ desc: "", monto: "", cat: "gym", method: "debito", tipo: "mensual", hastaFecha: "", cuotasTotales: 6, desde: currentMonth(), currency: "ARS" });
   const [editId, setEditId] = useState(null);
   const [toast, setToast] = useState(null);
@@ -44,7 +44,7 @@ export default function App() {
   const fileInputRef = useRef(null);
   const pendingImportRef = useRef(null);
 
-  const { txs, fijos, budgets, sueldo, nombre, customCats = [], fxRate = { USD_ARS: 0, updatedAt: null }, ahorros = [], aportes = [] } = state;
+  const { txs, fijos, budgets, sueldo, nombre, customCats = [], fxRate = { USD_ARS: 0, updatedAt: null, source: "blue", auto: false }, fxSource = "blue", ahorros = [], aportes = [] } = state;
 
   useEffect(() => { onQuotaError((msg) => showToast(msg)); }, [onQuotaError]);
   useEffect(() => { onLoadWarning((msg) => showToast(msg)); }, [onLoadWarning]);
@@ -53,6 +53,28 @@ export default function App() {
     const handler = (e) => { e.preventDefault(); setInstallPrompt(e); setShowInstall(true); };
     window.addEventListener("beforeinstallprompt", handler);
     return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const refreshFx = useCallback(async (source, opts = {}) => {
+    const src = source || fxSource || "blue";
+    try {
+      const rate = await fetchFxRate(src);
+      upd({ fxRate: { USD_ARS: rate, updatedAt: today(), source: src, auto: true }, fxSource: src });
+      if (opts.toast) showToast(`Cotización ${src} actualizada ✓`);
+    } catch {
+      if (opts.toast) showToast("No se pudo actualizar la cotización");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fxSource, upd]);
+
+  const autoFxTriedRef = useRef(false);
+  useEffect(() => {
+    if (autoFxTriedRef.current) return;
+    autoFxTriedRef.current = true;
+    const stale = !fxRate.updatedAt || fxRate.updatedAt !== today();
+    if (!stale) return;
+    refreshFx(fxRate.source || fxSource, { toast: false });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Manifest shortcuts: ?action=gasto|ingreso o ?tab=ahorros|fijos|movimientos
@@ -64,7 +86,7 @@ export default function App() {
     if (action === "gasto" || action === "ingreso") {
       setModalType(action);
       setEditId(null);
-      setForm({ desc: "", monto: "", cat: "supermercado", fecha: today(), method: "debito", currency: "ARS" });
+      setForm({ desc: "", monto: "", cat: "supermercado", fecha: today(), method: "debito", currency: "ARS", cuotas: 1 });
       setShowModal(true);
     }
     if (tabParam) {
@@ -121,6 +143,20 @@ export default function App() {
     };
   }, [totalsByCurrency, fxRate]);
 
+  const safeToSpend = useMemo(() => {
+    const unified = totalsUnifiedARS || { ingresos: totalsByCurrency.ARS.ingresos, gastos: totalsByCurrency.ARS.gastos, fijos: totalsByCurrency.ARS.fijos };
+    const ingresosBase = unified.ingresos;
+    if (ingresosBase <= 0) return null;
+    const now = new Date();
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const today = now.getDate();
+    const daysLeft = Math.max(1, lastDay - today + 1);
+    const fijosPendientes = unified.fijos * (daysLeft / lastDay);
+    const disponible = ingresosBase - (unified.gastos - unified.fijos) - fijosPendientes;
+    const perDay = disponible / daysLeft;
+    return { perDay, daysLeft, disponible };
+  }, [totalsUnifiedARS, totalsByCurrency]);
+
   const spentByCatMap = useMemo(() => {
     const m = {};
     const add = (cat, monto, currency) => {
@@ -160,7 +196,7 @@ export default function App() {
 
   const openModal = (type) => {
     setModalType(type); setEditId(null);
-    setForm({ desc: "", monto: "", cat: "supermercado", fecha: today(), method: "debito", currency: "ARS" });
+    setForm({ desc: "", monto: "", cat: "supermercado", fecha: today(), method: "debito", currency: "ARS", cuotas: 1 });
     setShowModal(true);
   };
 
@@ -176,10 +212,41 @@ export default function App() {
       setShowModal(false);
       return;
     }
+    const cuotas = Number(form.cuotas) || 1;
+    if (!editId && modalType === "gasto" && cuotas > 1) {
+      const total = Number(form.monto);
+      const montoCuota = Math.round((total / cuotas) * 100) / 100;
+      const nuevoFijo = {
+        id: uid(),
+        desc: form.desc || "Compra en cuotas",
+        monto: montoCuota,
+        cat: form.cat,
+        method: form.method || "credito",
+        tipo: "cuotas",
+        activo: true,
+        hastaFecha: null,
+        cuotasTotales: cuotas,
+        cuotasPagadas: 0,
+        desde: monthOf(form.fecha) || currentMonth(),
+        currency: form.currency || "ARS",
+      };
+      upd({ fijos: [nuevoFijo, ...fijos] });
+      showToast(`${cuotas} cuotas creadas en Fijos ✓`);
+      setShowModal(false);
+      return;
+    }
     const base = { ...form, monto: Number(form.monto), id: editId || uid(), type: modalType === "ingreso" ? "ingreso" : "gasto", currency: form.currency || "ARS" };
+    delete base.cuotas;
     if (modalType === "ingreso") { base.cat = "ingreso"; base.desc = base.desc || "Ingreso"; }
-    if (editId) { upd({ txs: txs.map((x) => (x.id === editId ? base : x)) }); showToast("Actualizado ✓"); }
-    else { upd({ txs: [base, ...txs] }); showToast(modalType === "ingreso" ? "Ingreso agregado ✓" : "Gasto agregado ✓"); }
+    if (editId) {
+      const prev = txs.find((x) => x.id === editId);
+      base.fxAtTx = prev?.fxAtTx ?? (fxRate.USD_ARS > 0 ? fxRate.USD_ARS : null);
+      upd({ txs: txs.map((x) => (x.id === editId ? base : x)) }); showToast("Actualizado ✓");
+    }
+    else {
+      base.fxAtTx = fxRate.USD_ARS > 0 ? fxRate.USD_ARS : null;
+      upd({ txs: [base, ...txs] }); showToast(modalType === "ingreso" ? "Ingreso agregado ✓" : "Gasto agregado ✓");
+    }
     setShowModal(false);
   };
 
@@ -227,7 +294,7 @@ export default function App() {
 
   const startEdit = (tx) => {
     setEditId(tx.id); setModalType(tx.type === "ingreso" ? "ingreso" : "gasto");
-    setForm({ desc: tx.desc, monto: String(tx.monto), cat: tx.cat, fecha: tx.fecha, method: tx.method || "debito", currency: tx.currency || "ARS" });
+    setForm({ desc: tx.desc, monto: String(tx.monto), cat: tx.cat, fecha: tx.fecha, method: tx.method || "debito", currency: tx.currency || "ARS", cuotas: 1 });
     setShowModal(true);
   };
 
@@ -454,6 +521,7 @@ export default function App() {
               onGoAhorros={() => setTab("Ahorros")}
               ahorros={ahorros}
               onEditTx={startEdit}
+              safeToSpend={safeToSpend}
             />
           )}
 
@@ -470,6 +538,7 @@ export default function App() {
               mthInfo={mthInfo}
               onEditTx={startEdit}
               onDelTx={del}
+              fxRate={fxRate}
             />
           )}
 
@@ -518,7 +587,10 @@ export default function App() {
               onAddCustomCat={(cat) => upd({ customCats: [...customCats, cat] })}
               onDelCustomCat={(id) => upd({ customCats: customCats.filter((c) => c.id !== id) })}
               fxRate={fxRate}
-              onUpdateFxRate={(rate) => { if (Number(rate) > 0) upd({ fxRate: { USD_ARS: Number(rate), updatedAt: today() } }); }}
+              fxSource={fxSource}
+              onUpdateFxRate={(rate) => { if (Number(rate) > 0) upd({ fxRate: { USD_ARS: Number(rate), updatedAt: today(), source: fxSource, auto: false } }); }}
+              onChangeFxSource={(src) => { upd({ fxSource: src }); refreshFx(src, { toast: true }); }}
+              onRefreshFx={() => refreshFx(fxSource, { toast: true })}
             />
           )}
         </div>
