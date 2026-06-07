@@ -160,7 +160,7 @@ export const uid = () => Math.random().toString(36).slice(2, 9);
 export const fmt = (n, currency = "ARS") => {
   const val = n || 0;
   if (currency === "USD") {
-    const num = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }).format(val);
+    const num = new Intl.NumberFormat("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val);
     return `US$ ${num}`;
   }
   return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(val);

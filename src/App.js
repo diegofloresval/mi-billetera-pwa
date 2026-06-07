@@ -8,6 +8,7 @@ import { useWallet } from "./useWallet";
 import { TxModal } from "./components/TxModal";
 import { FijoModal } from "./components/FijoModal";
 import { AhorroModal } from "./components/AhorroModal";
+import { ConfirmSheet } from "./components/ConfirmSheet";
 import { Toast } from "./components/Toast";
 import { BottomNav, Fab } from "./components/BottomNav";
 import { TopBar } from "./views/TopBar";
@@ -37,7 +38,9 @@ export default function App() {
   const [installPrompt, setInstallPrompt] = useState(null);
   const [showInstall, setShowInstall] = useState(false);
   const [movMes, setMovMes] = useState(currentMonth());
+  const [confirmState, setConfirmState] = useState(null);
   const fileInputRef = useRef(null);
+  const pendingImportRef = useRef(null);
 
   const { txs, fijos, budgets, sueldo, nombre, customCats = [], fxRate = { USD_ARS: 0, updatedAt: null }, ahorros = [], aportes = [] } = state;
 
@@ -50,6 +53,29 @@ export default function App() {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
+  // Manifest shortcuts: ?action=gasto|ingreso o ?tab=ahorros|fijos|movimientos
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const action = params.get("action");
+    const tabParam = params.get("tab");
+    if (action === "gasto" || action === "ingreso") {
+      setModalType(action);
+      setEditId(null);
+      setForm({ desc: "", monto: "", cat: "supermercado", fecha: today(), method: "debito", currency: "ARS" });
+      setShowModal(true);
+    }
+    if (tabParam) {
+      const map = { ahorros: "Ahorros", fijos: "Fijos", movimientos: "Movimientos", presupuesto: "Presupuesto", home: "Home", ajustes: "Ajustes" };
+      const t = map[tabParam.toLowerCase()];
+      if (t) setTab(t);
+    }
+    if (action || tabParam) {
+      // limpiar query para no re-disparar al navegar
+      try { window.history.replaceState({}, "", window.location.pathname); } catch {}
+    }
+  }, []);
+
   const cm = currentMonth();
   const gastosMes = useMemo(() => txs.filter((t) => t.type === "gasto" && isInMonth(t.fecha, cm)), [txs, cm]);
   const ingresosMes = useMemo(() => txs.filter((t) => t.type === "ingreso" && isInMonth(t.fecha, cm)), [txs, cm]);
@@ -57,7 +83,8 @@ export default function App() {
   // Backward-compat: balance/totales en ARS (excluye USD)
   const totalFijos = useMemo(() => fijosMes.filter((f) => (f.currency || "ARS") === "ARS").reduce((a, f) => a + f.monto, 0), [fijosMes]);
   const totalGastos = gastosMes.filter((t) => (t.currency || "ARS") === "ARS").reduce((a, t) => a + t.monto, 0) + totalFijos;
-  const totalIngresos = ingresosMes.filter((t) => (t.currency || "ARS") === "ARS").reduce((a, t) => a + t.monto, 0) + sueldo;
+  // Sueldo se representa como tx determinística (id `sueldo-${ym}`), por eso NO se suma aparte.
+  const totalIngresos = ingresosMes.filter((t) => (t.currency || "ARS") === "ARS").reduce((a, t) => a + t.monto, 0);
   const balance = totalIngresos - totalGastos;
 
   // Totales separados por moneda
@@ -65,7 +92,7 @@ export default function App() {
     const sumBy = (arr, cur) => arr.filter((x) => (x.currency || "ARS") === cur).reduce((a, x) => a + x.monto, 0);
     return {
       ARS: {
-        ingresos: sumBy(ingresosMes, "ARS") + sueldo,
+        ingresos: sumBy(ingresosMes, "ARS"),
         gastos: sumBy(gastosMes, "ARS") + sumBy(fijosMes, "ARS"),
         fijos: sumBy(fijosMes, "ARS"),
       },
@@ -75,7 +102,7 @@ export default function App() {
         fijos: sumBy(fijosMes, "USD"),
       },
     };
-  }, [ingresosMes, gastosMes, fijosMes, sueldo]);
+  }, [ingresosMes, gastosMes, fijosMes]);
 
   // Totales unificados en ARS (null si hay USD y falta fxRate)
   const totalsUnifiedARS = useMemo(() => {
@@ -137,7 +164,16 @@ export default function App() {
 
   const submit = () => {
     if (!form.monto || Number(form.monto) <= 0) return;
-    if (modalType === "sueldo") { upd({ sueldo: Number(form.monto) }); showToast("Sueldo actualizado ✓"); setShowModal(false); return; }
+    if (modalType === "sueldo") {
+      const monto = Number(form.monto);
+      const sueldoId = `sueldo-${cm}`;
+      const sueldoTx = { id: sueldoId, type: "ingreso", cat: "ingreso", desc: "Sueldo", monto, currency: "ARS", fecha: today(), method: "transfer" };
+      const others = txs.filter((t) => t.id !== sueldoId);
+      upd({ sueldo: monto, txs: [sueldoTx, ...others] });
+      showToast("Sueldo actualizado ✓");
+      setShowModal(false);
+      return;
+    }
     const base = { ...form, monto: Number(form.monto), id: editId || uid(), type: modalType === "ingreso" ? "ingreso" : "gasto", currency: form.currency || "ARS" };
     if (modalType === "ingreso") { base.cat = "ingreso"; base.desc = base.desc || "Ingreso"; }
     if (editId) { upd({ txs: txs.map((x) => (x.id === editId ? base : x)) }); showToast("Actualizado ✓"); }
@@ -186,8 +222,12 @@ export default function App() {
     const f = fijos.find((x) => x.id === id);
     if (!f) return;
     const completa = f.cuotasPagadas + 1 >= f.cuotasTotales;
-    upd({ fijos: fijos.map((x) => x.id === id ? { ...x, cuotasPagadas: Math.min(x.cuotasPagadas + 1, x.cuotasTotales) } : x) });
-    showToast(completa ? "Última cuota ✓ Plan completado" : "Cuota registrada ✓");
+    const prevPagadas = f.cuotasPagadas;
+    setState((s) => ({ ...s, fijos: s.fijos.map((x) => x.id === id ? { ...x, cuotasPagadas: Math.min(x.cuotasPagadas + 1, x.cuotasTotales) } : x) }));
+    showToast(
+      completa ? "Última cuota ✓ Plan completado" : "Cuota registrada ✓",
+      () => setState((s) => ({ ...s, fijos: s.fijos.map((x) => x.id === id ? { ...x, cuotasPagadas: prevPagadas } : x) }))
+    );
   };
 
   const openAhorroModal = (a = null) => {
@@ -268,8 +308,7 @@ export default function App() {
     URL.revokeObjectURL(url);
     showToast("Datos exportados ✓");
   };
-  const importar = (file) => {
-    if (!window.confirm("¿Reemplazar tus datos actuales con los del archivo? Esta acción no se puede deshacer.")) return;
+  const doImport = (file) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -282,10 +321,28 @@ export default function App() {
     };
     reader.readAsText(file);
   };
+  const importar = (file) => {
+    pendingImportRef.current = file;
+    setConfirmState({
+      title: "Importar datos",
+      message: "Esto reemplaza tus datos actuales con los del archivo. No se puede deshacer.",
+      confirmLabel: "Reemplazar",
+      danger: true,
+      onConfirm: () => {
+        const f = pendingImportRef.current;
+        pendingImportRef.current = null;
+        if (f) doImport(f);
+      },
+    });
+  };
   const borrarTodo = () => {
-    if (!window.confirm("¿Borrar todos los datos? Esta acción no se puede deshacer.")) return;
-    reset();
-    showToast("Todo borrado");
+    setConfirmState({
+      title: "Borrar todo",
+      message: "¿Borrar todos los datos? Esta acción no se puede deshacer.",
+      confirmLabel: "Borrar",
+      danger: true,
+      onConfirm: () => { reset(); showToast("Todo borrado"); },
+    });
   };
 
   const installApp = async () => {
@@ -469,6 +526,16 @@ export default function App() {
             onClose={() => setShowAhorroModal(false)}
           />
         )}
+
+        <ConfirmSheet
+          open={!!confirmState}
+          title={confirmState?.title}
+          message={confirmState?.message}
+          confirmLabel={confirmState?.confirmLabel}
+          danger={!!confirmState?.danger}
+          onConfirm={confirmState?.onConfirm}
+          onClose={() => setConfirmState(null)}
+        />
 
         <Toast toast={toast} onDismiss={() => setToast(null)} />
       </div>
