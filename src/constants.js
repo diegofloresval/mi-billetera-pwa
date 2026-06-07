@@ -74,7 +74,8 @@ export const INITIAL_STATE = {
   sueldo: 0,
   nombre: "",
   customCats: [],
-  fxRate: { USD_ARS: 0, updatedAt: null },
+  fxRate: { USD_ARS: 0, updatedAt: null, source: "blue", auto: false },
+  fxSource: "blue",
   ahorros: [],
   aportes: [],
 };

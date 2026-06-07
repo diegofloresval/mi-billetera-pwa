@@ -54,7 +54,13 @@ function daysSince(iso) {
   return Math.floor((Date.now() - then) / 86400000);
 }
 
-export function AjustesView({ nombre, onChangeNombre, onExport, onImportClick, onBorrarTodo, fileInputRef, onFileChange, customCats = [], onAddCustomCat, onDelCustomCat, fxRate = { USD_ARS: 0, updatedAt: null }, onUpdateFxRate }) {
+const FX_SOURCES = [
+  { id: "blue", label: "Blue" },
+  { id: "oficial", label: "Oficial" },
+  { id: "mep", label: "MEP" },
+];
+
+export function AjustesView({ nombre, onChangeNombre, onExport, onImportClick, onBorrarTodo, fileInputRef, onFileChange, customCats = [], onAddCustomCat, onDelCustomCat, fxRate = { USD_ARS: 0, updatedAt: null, source: "blue", auto: false }, fxSource = "blue", onUpdateFxRate, onChangeFxSource, onRefreshFx }) {
   const [emoji, setEmoji] = useState("");
   const [label, setLabel] = useState("");
   const [fxInput, setFxInput] = useState("");
@@ -125,18 +131,56 @@ export function AjustesView({ nombre, onChangeNombre, onExport, onImportClick, o
 
       <p style={S.sectionLabel}>💱 Tipo de cambio</p>
       <div style={S.fxCard}>
-        <p style={S.fxCurrent}>
-          {fxRate?.USD_ARS > 0 ? `1 USD = $${fxRate.USD_ARS} ARS` : "No definido"}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <p style={S.fxCurrent}>
+            {fxRate?.USD_ARS > 0 ? `1 USD = $${fxRate.USD_ARS} ARS` : "No definido"}
+          </p>
+          {fxRate?.auto && (
+            <span style={{ fontSize: 10, fontWeight: 900, color: C.inkOnHoja, background: C.hojaSoft, borderRadius: 99, padding: "3px 8px", letterSpacing: 0.5 }}>AUTO</span>
+          )}
+        </div>
+        <p style={S.fxUpdated}>
+          Actualizado: {fxRate?.updatedAt || "—"}
+          {fxRate?.source ? ` · ${fxRate.source}` : ""}
         </p>
-        <p style={S.fxUpdated}>Actualizado: {fxRate?.updatedAt || "—"}</p>
         {fxStale && <p style={S.fxWarn}>Actualizá el tipo de cambio</p>}
+
+        <div style={{ display: "flex", gap: 6, marginTop: 12, flexWrap: "wrap" }}>
+          {FX_SOURCES.map((src) => {
+            const active = fxSource === src.id;
+            return (
+              <button
+                key={src.id}
+                onClick={() => active ? null : onChangeFxSource?.(src.id)}
+                className="btn-pill"
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: 99,
+                  border: active ? "none" : `1.5px solid ${C.hojaSoft}`,
+                  background: active ? C.hoja : "transparent",
+                  color: active ? C.inkOnHoja : C.ink2,
+                  fontWeight: 800,
+                  fontSize: 12,
+                  cursor: "pointer",
+                }}
+                aria-pressed={active}
+              >
+                {src.label}
+              </button>
+            );
+          })}
+          <button onClick={() => onRefreshFx?.()} className="btn-pill" style={{ marginLeft: "auto", padding: "6px 14px", borderRadius: 99, border: "none", background: C.mentaSoft, color: C.esmeralda, fontWeight: 800, fontSize: 12, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}>
+            <Icon name="refresh" size={14} /> Actualizar
+          </button>
+        </div>
+
         <div style={S.fxFormRow}>
           <input
             type="number"
             inputMode="decimal"
             value={fxInput}
             onChange={(e) => setFxInput(e.target.value)}
-            placeholder="Ej: 1200"
+            placeholder="O ingresá uno manual"
             style={S.fxInput}
             aria-label="Nuevo tipo de cambio"
           />

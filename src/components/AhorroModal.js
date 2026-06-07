@@ -33,7 +33,7 @@ export function AhorroModal({ ahorroForm, setAhorroForm, editAhorroId, onSubmit,
         {CURRENCIES.map((cur) => {
           const active = (ahorroForm.currency || "ARS") === cur.id;
           return (
-            <button key={cur.id} className="btn-pill" onClick={() => setAhorroForm({ ...ahorroForm, currency: cur.id })} style={{ flex: 1, padding: "10px 14px", borderRadius: 99, border: "none", background: active ? C.hoja : C.hojaSoft, color: active ? C.inkOnHoja : C.ink, fontSize: 13, fontWeight: 800, fontFamily: "inherit", cursor: "pointer" }}>{cur.symbol} {cur.id}</button>
+            <button key={cur.id} className="btn-pill" onClick={() => setAhorroForm({ ...ahorroForm, currency: cur.id })} style={{ flex: 1, padding: "10px 14px", borderRadius: 99, border: "none", background: active ? C.hoja : C.hojaSoft, color: active ? C.inkOnHoja : C.ink, fontSize: 13, fontWeight: 800, fontFamily: "inherit", cursor: "pointer" }}>{cur.label}</button>
           );
         })}
       </div>
