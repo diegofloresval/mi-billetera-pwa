@@ -1,7 +1,7 @@
 import { C } from "../constants";
 import { fmt } from "../helpers";
 import { FijoCard } from "../components/FijoCard";
-import { Icon } from "../components/Icon";
+import { ManekiNeko } from "../components/ManekiNeko";
 
 const EMPTY_WRAP = { textAlign: "center", color: C.ink2, marginTop: 60, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 };
 
@@ -25,7 +25,9 @@ export function FijosView({ totalFijos, activosFijos, inactivosFijos, fijos, onE
       </>}
       {fijos.length === 0 && (
         <div style={EMPTY_WRAP}>
-          <Icon name="eco" size={40} filled color={C.hoja} />
+          <div style={{ width: 64, height: 64, borderRadius: "50%", background: C.hojaSoft, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <ManekiNeko size={36} />
+          </div>
           <p>Sin gastos fijos<br /><small>Agregá gym, celular, cuotas...</small></p>
         </div>
       )}
