@@ -3,7 +3,6 @@ import { fmt } from "../helpers";
 import { FijoCard } from "../components/FijoCard";
 import { ManekiNeko } from "../components/ManekiNeko";
 
-const EMPTY_WRAP = { textAlign: "center", color: C.ink2, marginTop: 60, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 };
 
 export function FijosView({ totalFijos, activosFijos, inactivosFijos, fijos, onEditFijo, onDelFijo, onToggleFijo, onPagarFijo }) {
   return (
@@ -24,11 +23,12 @@ export function FijosView({ totalFijos, activosFijos, inactivosFijos, fijos, onE
         {inactivosFijos.map((f) => <FijoCard key={f.id} f={f} onEdit={() => onEditFijo(f)} onDel={() => onDelFijo(f.id)} onToggle={() => onToggleFijo(f.id)} onPagar={() => onPagarFijo(f.id)} />)}
       </>}
       {fijos.length === 0 && (
-        <div style={EMPTY_WRAP}>
-          <div style={{ width: 64, height: 64, borderRadius: "50%", background: C.hojaSoft, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <ManekiNeko size={36} />
+        <div style={{ textAlign: "center", marginTop: 60, padding: "0 20px" }}>
+          <div style={{ marginBottom: 14, display: "flex", justifyContent: "center" }}>
+            <ManekiNeko size={180} variant="stop" alt="Maneki neko frenando gastos" />
           </div>
-          <p>Sin gastos fijos<br /><small>Agregá gym, celular, cuotas...</small></p>
+          <p style={{ color: C.ink, fontWeight: 800, fontSize: 16, marginBottom: 6 }}>Sin gastos fijos</p>
+          <p style={{ color: C.ink2, fontSize: 13 }}>Agregá gym, celular, cuotas...</p>
         </div>
       )}
     </div>

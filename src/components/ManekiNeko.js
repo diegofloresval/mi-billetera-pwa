@@ -1,7 +1,9 @@
 export function ManekiNeko({ size = 24, variant, style, alt = "" }) {
   const v = variant || (size <= 32 ? "icon" : size <= 96 ? "mid" : "hero");
   const src =
-    v === "hero" ? "/maneki-hero.png" : v === "mid" ? "/maneki.png" : "/maneki-icon.png";
+    v === "stop" ? "/maneki-stop.png" :
+    v === "hero" ? "/maneki-hero.png" :
+    v === "mid" ? "/maneki.png" : "/maneki-icon.png";
   return (
     <img
       src={`${process.env.PUBLIC_URL}${src}`}
