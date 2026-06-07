@@ -24,7 +24,7 @@ export function HomeView({
   balance, balanceUnified, sueldo, totalFijos, totalIngresos, totalGastos,
   totalsByCurrency, totalsUnifiedARS, fxRate,
   activosFijos, top5, txs, mthInfo, onGoMovimientos, onGoFijos, onEditTx,
-  ahorros = [], onGoAhorros,
+  ahorros = [], onGoAhorros, safeToSpend = null,
 }) {
   const [viewMode, setViewMode] = useState("split");
 
@@ -81,6 +81,25 @@ export function HomeView({
           )}
         </div>
       </div>
+
+      {safeToSpend && (
+        <div style={{ background: C.card, borderRadius: 22, padding: "16px 18px", marginTop: 14, display: "flex", alignItems: "center", gap: 14, boxShadow: `0 4px 16px ${C.hoja}1F` }}>
+          <div style={{ width: 44, height: 44, borderRadius: "50%", background: safeToSpend.perDay > 0 ? C.hojaSoft : C.coralSoft, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: safeToSpend.perDay > 0 ? C.inkOnHoja : C.inkDanger }}>
+            <Icon name={safeToSpend.perDay > 0 ? "savings" : "warning"} size={22} filled />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ color: C.ink2, fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", fontWeight: 800 }}>Seguro por día</p>
+            <p style={{ fontWeight: 900, fontSize: 22, color: safeToSpend.perDay > 0 ? C.ink : C.inkDanger, fontVariantNumeric: "tabular-nums", marginTop: 2 }}>
+              {fmt(Math.max(0, safeToSpend.perDay))}
+            </p>
+            <p style={{ fontSize: 11, color: C.ink2, marginTop: 2, fontWeight: 600 }}>
+              {safeToSpend.perDay > 0
+                ? `por los próximos ${safeToSpend.daysLeft} día${safeToSpend.daysLeft === 1 ? "" : "s"}`
+                : `Excediste ${fmt(Math.abs(safeToSpend.disponible))} este mes`}
+            </p>
+          </div>
+        </div>
+      )}
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 14 }}>
         <div style={{ background: C.menta, borderRadius: 24, padding: "18px 18px", display: "flex", flexDirection: "column", gap: 12, boxShadow: `0 8px 22px ${C.menta}55` }}>
