@@ -312,6 +312,8 @@ export default function App() {
         body{min-height:100%;}
         ::-webkit-scrollbar{display:none;}
         input,select,button{font-family:'Plus Jakarta Sans',sans-serif;outline:none;}
+        *:focus{outline:none;}
+        *:focus-visible{outline:2px solid ${C.hoja};outline-offset:2px;border-radius:4px;}
         .material-symbols-outlined{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;display:inline-block;line-height:1;text-transform:none;letter-spacing:normal;word-wrap:normal;white-space:nowrap;direction:ltr;-webkit-font-feature-settings:'liga';-webkit-font-smoothing:antialiased;}
         .slide-up{animation:slideUp 0.4s cubic-bezier(.34,1.5,.64,1) both;}
         .fade-in{animation:fadeIn 0.32s ease both;}

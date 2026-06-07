@@ -7,6 +7,7 @@ export function BudgetInput({ initial, color, onSave, onCancel }) {
   return (
     <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
       <input
+        aria-label="Presupuesto"
         type="number"
         inputMode="numeric"
         value={val}

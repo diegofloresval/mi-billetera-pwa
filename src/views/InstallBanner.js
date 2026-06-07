@@ -1,4 +1,5 @@
 import { C } from "../constants";
+import { Icon } from "../components/Icon";
 
 export function InstallBanner({ onInstall, onDismiss }) {
   return (
@@ -8,8 +9,8 @@ export function InstallBanner({ onInstall, onDismiss }) {
         <p style={{ color: "#fff", fontWeight: 800, fontSize: 14 }}>Instalá la app</p>
         <p style={{ color: "rgba(255,255,255,.95)", fontSize: 11 }}>Acceso rápido desde el inicio</p>
       </div>
-      <button onClick={onInstall} style={{ padding: "8px 16px", borderRadius: 99, border: "none", background: "#fff", color: C.esmeralda, fontWeight: 800, fontSize: 12, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>Instalar</button>
-      <button onClick={onDismiss} style={{ background: "none", border: "none", color: "rgba(255,255,255,.7)", fontSize: 18, cursor: "pointer", lineHeight: 1, padding: 0 }}>×</button>
+      <button onClick={onInstall} style={{ minHeight: 44, padding: "10px 18px", borderRadius: 99, border: "none", background: "#fff", color: C.esmeralda, fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>Instalar</button>
+      <button onClick={onDismiss} aria-label="Cerrar" style={{ background: "none", border: "none", color: "rgba(255,255,255,.85)", cursor: "pointer", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}><Icon name="close" size={22} /></button>
     </div>
   );
 }

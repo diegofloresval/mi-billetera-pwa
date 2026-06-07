@@ -26,8 +26,8 @@ export function AhorroModal({ ahorroForm, setAhorroForm, editAhorroId, onSubmit,
   );
   return (
     <ModalSheet title={title} onClose={onClose}>
-      <input placeholder="Nombre (ej: Vacaciones, Auto, Notebook…)" value={ahorroForm.nombre} onChange={(e) => setAhorroForm({ ...ahorroForm, nombre: e.target.value })} {...inp()} />
-      <input placeholder="Meta total $" type="number" value={ahorroForm.meta} onChange={(e) => setAhorroForm({ ...ahorroForm, meta: e.target.value })} {...inp()} />
+      <input aria-label="Nombre" placeholder="Nombre (ej: Vacaciones, Auto, Notebook…)" value={ahorroForm.nombre} onChange={(e) => setAhorroForm({ ...ahorroForm, nombre: e.target.value })} {...inp()} />
+      <input aria-label="Meta total" placeholder="Meta total $" type="number" value={ahorroForm.meta} onChange={(e) => setAhorroForm({ ...ahorroForm, meta: e.target.value })} {...inp()} />
       <p style={S.labelMicro}>Moneda</p>
       <div style={S.pillRow}>
         {CURRENCIES.map((cur) => {
@@ -38,13 +38,13 @@ export function AhorroModal({ ahorroForm, setAhorroForm, editAhorroId, onSubmit,
         })}
       </div>
       <p style={S.labelMicro}>Emoji</p>
-      <input placeholder="🐱" maxLength={4} value={ahorroForm.emoji} onChange={(e) => setAhorroForm({ ...ahorroForm, emoji: e.target.value })} {...inp({ style: { textAlign: "center", fontSize: 22 } })} />
+      <input aria-label="Emoji" placeholder="🐱" maxLength={4} value={ahorroForm.emoji} onChange={(e) => setAhorroForm({ ...ahorroForm, emoji: e.target.value })} {...inp({ style: { textAlign: "center", fontSize: 22, minHeight: 44 } })} />
       <p style={S.labelMicro}>Color</p>
       <div style={S.colorRow}>
         {AHORRO_COLORS.map((col) => {
           const active = selectedColor === col;
           return (
-            <button key={col} aria-label={`Color ${col}`} onClick={() => setAhorroForm({ ...ahorroForm, color: col })} style={{ width: 38, height: 38, borderRadius: "50%", border: active ? `3px solid ${C.ink}` : `3px solid ${C.card}`, background: col, cursor: "pointer", boxShadow: `0 2px 8px ${col}66`, padding: 0, fontFamily: "inherit" }} />
+            <button key={col} aria-label={`Color ${col}`} aria-pressed={active} onClick={() => setAhorroForm({ ...ahorroForm, color: col })} style={{ width: 44, height: 44, borderRadius: "50%", border: active ? `3px solid ${C.ink}` : `3px solid ${C.card}`, background: col, cursor: "pointer", boxShadow: `0 2px 8px ${col}66`, padding: 0, fontFamily: "inherit" }} />
           );
         })}
       </div>

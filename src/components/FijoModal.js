@@ -26,8 +26,8 @@ export function FijoModal({ fijoForm, setFijoForm, editFijoId, customCats = [], 
   const title = `📌 ${editFijoId ? "Editar gasto fijo" : "Nuevo gasto fijo"}`;
   return (
     <ModalSheet title={title} onClose={onClose}>
-      <input placeholder="Nombre (ej: Gym, Celular, Spotify…)" value={fijoForm.desc} onChange={(e) => setFijoForm({ ...fijoForm, desc: e.target.value })} {...inp()} />
-      <input placeholder="Monto mensual / por cuota $" type="number" value={fijoForm.monto} onChange={(e) => setFijoForm({ ...fijoForm, monto: e.target.value })} {...inp()} />
+      <input aria-label="Nombre" placeholder="Nombre (ej: Gym, Celular, Spotify…)" value={fijoForm.desc} onChange={(e) => setFijoForm({ ...fijoForm, desc: e.target.value })} {...inp()} />
+      <input aria-label="Monto" placeholder="Monto mensual / por cuota $" type="number" value={fijoForm.monto} onChange={(e) => setFijoForm({ ...fijoForm, monto: e.target.value })} {...inp()} />
       <p style={S.labelMicro}>Moneda</p>
       <div style={S.pillRow}>
         {CURRENCIES.map((cur) => {
@@ -46,15 +46,15 @@ export function FijoModal({ fijoForm, setFijoForm, editFijoId, customCats = [], 
       <div style={S.variantBox}>
         {fijoForm.tipo === "mensual" && <>
           <p style={S.labelSmall}>¿Hasta cuándo? (vacío = indefinido)</p>
-          <input type="month" value={fijoForm.hastaFecha} onChange={(e) => setFijoForm({ ...fijoForm, hastaFecha: e.target.value })} {...inp()} />
+          <input aria-label="Hasta cuándo" type="month" value={fijoForm.hastaFecha} onChange={(e) => setFijoForm({ ...fijoForm, hastaFecha: e.target.value })} {...inp()} />
         </>}
         {fijoForm.tipo === "cuotas" && <>
           <p style={S.labelMicro}>Cantidad de cuotas</p>
           <div style={S.cuotasGrid}>
-            {CUOTAS_OPS.map((n) => <button key={n} className="btn-pill" onClick={() => setFijoForm({ ...fijoForm, cuotasTotales: n })} style={{ width: 52, height: 42, borderRadius: 14, border: "none", background: fijoForm.cuotasTotales === n ? C.coral : C.coralSoft, color: C.inkDanger, fontWeight: 900, fontSize: 13 }}>{n}x</button>)}
+            {CUOTAS_OPS.map((n) => <button key={n} className="btn-pill" onClick={() => setFijoForm({ ...fijoForm, cuotasTotales: n })} style={{ width: 52, height: 42, borderRadius: 14, border: "none", background: fijoForm.cuotasTotales === n ? C.menta : C.hojaSoft, color: C.inkOnHoja, fontWeight: 900, fontSize: 13 }}>{n}x</button>)}
           </div>
           <p style={S.labelSmall}>Mes de inicio</p>
-          <input type="month" value={fijoForm.desde} onChange={(e) => setFijoForm({ ...fijoForm, desde: e.target.value })} {...inp()} />
+          <input aria-label="Mes de inicio" type="month" value={fijoForm.desde} onChange={(e) => setFijoForm({ ...fijoForm, desde: e.target.value })} {...inp()} />
         </>}
       </div>
       <p style={S.labelMicro}>Método de pago</p>
@@ -63,7 +63,12 @@ export function FijoModal({ fijoForm, setFijoForm, editFijoId, customCats = [], 
       </div>
       <p style={S.labelMicro}>Categoría</p>
       <div style={S.catGrid}>
-        {allCats.map((c) => <button key={c.id} className="btn-pill" onClick={() => setFijoForm({ ...fijoForm, cat: c.id })} style={{ padding: "8px 14px", borderRadius: 99, border: "none", background: fijoForm.cat === c.id ? C.menta : C.hojaSoft, color: C.ink, fontSize: 13, fontWeight: 800 }}>{c.emoji} {c.label}</button>)}
+        {allCats.map((c) => {
+          const active = fijoForm.cat === c.id;
+          return (
+            <button key={c.id} className="btn-pill" aria-pressed={active} onClick={() => setFijoForm({ ...fijoForm, cat: c.id })} style={{ padding: "8px 14px", borderRadius: 99, border: "none", background: active ? C.menta : C.hojaSoft, color: C.ink, fontSize: 13, fontWeight: active ? 900 : 700 }}>{active ? "✓ " : ""}{c.emoji} {c.label}</button>
+          );
+        })}
       </div>
       <button onClick={onSubmit} style={S.submit}>
         {editFijoId ? "Guardar cambios" : "Agregar gasto fijo"}

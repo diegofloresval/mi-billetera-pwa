@@ -57,11 +57,18 @@ export function HomeView({
               </div>
             )}
           </div>
-          <AnimNumber value={effectiveMode === "unified" && balanceUnified != null ? balanceUnified : balance} style={{ display: "block", fontSize: 40, fontWeight: 900, color: C.ink, marginTop: 6, letterSpacing: -1, fontVariantNumeric: "tabular-nums" }} />
+          {(() => {
+            const displayedBalance = effectiveMode === "unified" && balanceUnified != null ? balanceUnified : balance;
+            return (
+              <AnimNumber value={displayedBalance} style={{ display: "block", fontSize: 40, fontWeight: 900, color: displayedBalance < 0 ? C.inkDanger : C.ink, marginTop: 6, letterSpacing: -1, fontVariantNumeric: "tabular-nums" }} />
+            );
+          })()}
           <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: C.hojaSoft, color: C.ink, borderRadius: 99, padding: "5px 12px", fontSize: 11, fontWeight: 800, border: `1px solid ${C.hoja}55` }}>
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: C.esmeralda }} /> Sueldo {fmt(sueldo)}
-            </span>
+            {sueldo > 0 && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: C.hojaSoft, color: C.ink, borderRadius: 99, padding: "5px 12px", fontSize: 11, fontWeight: 800, border: `1px solid ${C.hoja}55` }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: C.esmeralda }} /> Sueldo {fmt(sueldo)}
+              </span>
+            )}
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: C.coralSoft, color: C.ink, borderRadius: 99, padding: "5px 12px", fontSize: 11, fontWeight: 800, border: `1px solid ${C.coral}55` }}>
               <span style={{ width: 8, height: 8, borderRadius: "50%", background: C.coral }} /> Fijos {fmt(fjsDisplayARS)}{showUSDRow && byC.USD.fijos > 0 ? ` · ${fmt(byC.USD.fijos, "USD")}` : ""}
             </span>
@@ -154,7 +161,7 @@ export function HomeView({
           </div>
           <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 6, margin: "0 -16px", padding: "2px 16px 8px" }}>
             {top5.map((c, i) => {
-              const palette = [C.coralSoft, C.menta, C.hojaSoft, C.esmeraldaSoft, C.mentaSoft];
+              const palette = [C.menta, C.hojaSoft, C.mentaSoft, C.esmeraldaSoft, C.hojaSoft];
               const bg = palette[i % palette.length];
               return (
                 <div key={c.id} style={{ flexShrink: 0, width: 128, height: 132, borderRadius: 20, padding: "14px 12px", background: bg, position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", boxShadow: `0 4px 14px ${C.hoja}1A` }}>
